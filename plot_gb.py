@@ -241,10 +241,10 @@ cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
         (f(-4.0), '#78b0d1'),       # Deep sea blue
         (f(-3), '#0f561e'),         # Dark green
         (f(10), '#1a8b33'),         # Nicer green
-        (f(100), '#11ba15'),        # Glorious green
+        (f(100), '#11aa15'),        # Glorious green
         (f(300), '#e8e374'),        # Yellow
         (f(800), '#8a4121'),        # Brownish
-        (f(1000), '#999999'),       # Grey
+        (f(1100), '#999999'),       # Grey
         (1, 'white'),
     ])
 
