@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """
-Provides the method
-
-Reads and returns elevation data for Great Brittain, from the Ordinance Survey
-file ``terr50_gagg_gb.zip``, via :meth:`data.gb()`.
+Provides plotting methods.
 """
 # The zip contains several grid squares, using the lettering described here:
 # https://en.wikipedia.org/wiki/Ordnance_Survey_National_Grid
