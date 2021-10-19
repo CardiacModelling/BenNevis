@@ -221,8 +221,8 @@ vmin = np.min(arr)
 vmax = np.max(arr)
 print(f'Heighest point: {vmax}')
 
-# Downsample
-d = 4
+# Downsample (d=27 gives me a map that fits on my screen at 100% zoom).
+d = 27
 if d > 1:
     print(f'Downsampling with factor {d}')
     nx, ny = nx // d, ny // d
