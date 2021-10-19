@@ -16,7 +16,7 @@ Run `plot_gb.py`.
 Don't worry, it'll be a lot faster the 2nd time.
 
 The amount of downscaling can be set using the variable ``d``.
+An example with ``d=32`` is shown below.
 
-This is with ``d=32``:
 ![Downscaled map of GB](gb-small.png)
 
