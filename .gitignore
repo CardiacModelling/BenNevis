@@ -1,0 +1,24 @@
+# Ignore compiled .pyc files
+*.pyc
+__pycache__
+
+# Ignore installation files
+*.egg-info
+
+# Jupyter notebooks
+.ipynb_checkpoints
+
+# Virtual environments
+venv
+
+# DS Store
+.DS_Store
+
+# Downloaded map zip
+terr50_gagg_gb.zip
+
+# Cached map array
+terr50_gagg_gb.npy
+
+# Potentially massive image
+gb.png
