@@ -13,7 +13,7 @@ https://scipython.com/blog/processing-uk-ordnance-survey-terrain-data/
 """
 import os
 import sys
-import url
+import urllib.request
 import zipfile
 
 import numpy as np
@@ -39,6 +39,10 @@ width, height = 700000, 1300000
 # .asc file encoding
 ENC = 'utf-8'
 
+# Check Python version
+if sys.hexversion < 0x03050000:
+    raise RuntimeError('This script requires Python 3.5 or newer.')
+
 
 def download(url, fname):
     """
@@ -62,7 +66,7 @@ def download(url, fname):
         url.close()
 
     print('Writing...')
-    with open(fname, 'rb') as f:
+    with open(fname, 'wb') as f:
         f.write(raw_data)
 
 
@@ -185,7 +189,7 @@ if os.path.isfile(cached):
     arr = np.load(cached)
 else:
     # Ensure zip is downloaded
-    download(url, fname)
+    download(url, f'{fname}.zip')
 
     # Create empty array
     arr = np.empty((ny, nx), dtype=np.float32)
@@ -220,6 +224,7 @@ print(f'Heighest point: {vmax}')
 # Downsample
 d = 4
 if d > 1:
+    print(f'Downsampling with factor {d}')
     nx, ny = nx // d, ny // d
     arr = arr[::d, ::d]
 
