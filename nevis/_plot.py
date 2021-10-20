@@ -85,17 +85,25 @@ def save_plot(path, fig, arr):
 
     This check requires ``PIL`` to be installed (will silently fail if not).
     """
+    # Store
     fig.savefig(path)
+
+    # Try importing PIL to check image size
     try:
         import PIL
     except ImportError:
         return
 
-    im = PIL.Image.open(path)
-    print(f'Checking PNG size with PIL: {im.size[0]} by {im.size[1]}')
-    ny, nx = arr.shape
-    if im.size[0] == nx or im.size[1] != ny:
+    # Suppress "DecompressionBomb" warning
+    PIL.Image.MAX_IMAGE_PIXELS = None
+
+    # Open image, get file size
+    print(f'Checking size of generated image')
+    with PIL.Image.open(path) as im:
+        ix, iy = im.size
+
+    if (iy, ix) == arr.shape:
         print('Image size OK')
     else:
-        print('Unexpected image size!')
+        print(f'Unexpected image size: width {ix}, height {iy}')
 
