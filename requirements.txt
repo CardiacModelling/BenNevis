@@ -1,2 +1,3 @@
+-e git://github.com/CardiacModelling/wevis.git#egg=wevis
 numpy
 matplotlib

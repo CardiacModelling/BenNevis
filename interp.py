@@ -13,6 +13,7 @@ arr = nevis.gb()
 # Downsample a lot, for testing
 d = 8
 arr = arr[::d, ::d]
+ny, nx = arr.shape
 
 print(arr.shape)
 
@@ -27,12 +28,10 @@ else:
 print('Reticulating splines...')
 t = nevis.Timer()
 s = scipy.interpolate.RectBivariateSpline(y, x, arr)
-f = lambda x, y: s(x, y)[0][0]
+f = lambda x, y: s(x / nx, y / ny)[0][0]
 print(t.format())
 
 print('Testing')
 print(f(0, 0))
-#print(f(0.5, 0.5))
-print(f(1000, 1234))
-print(arr[1000, 1234])
+print(f(0.5, 0.5))
 
