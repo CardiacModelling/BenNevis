@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Provides the method :meth:`data.gb()` that returns elevation data for Great
-Brittain, obtained from the Ordinance Survey data set ``terr50_gagg_gb``.
+Brittain, obtained from the Ordnance Survey data set ``terr50_gagg_gb``.
 """
 # The zip contains several grid squares, using the lettering described here:
 # https://en.wikipedia.org/wiki/Ordnance_Survey_National_Grid
@@ -37,7 +37,7 @@ ENC = 'utf-8'
 
 def download(url, fname):
     """
-    Downloads the (160mb) gagg file from Ordinance Survey.
+    Downloads the (160mb) gagg file from Ordnance Survey.
     """
     if os.path.isfile(fname):
         return
