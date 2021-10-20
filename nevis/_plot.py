@@ -14,7 +14,7 @@ import matplotlib.colors
 import matplotlib.pyplot as plt
 
 
-def plot(arr, downsampling=1):
+def plot(arr, downsampling=27):
     """
     Creates a plot of the 2D elevation data in ``arr``, downsampled with a
     factor ``downsampling``.
@@ -28,14 +28,13 @@ def plot(arr, downsampling=1):
     # Get extreme points
     vmin = np.min(arr)
     vmax = np.max(arr)
-    print(f'Heighest point: {vmax}')
+    print(f'Highest point: {vmax}')
 
-    # Downsample (d=27 gives me a map that fits on my screen at 100% zoom).
-    d = 27
-    if d > 1:
-        print(f'Downsampling with factor {d}')
-        nx, ny = nx // d, ny // d
-        arr = arr[::d, ::d]
+    # Downsample (27 gives me a map that fits on my screen at 100% zoom).
+    if downsampling > 1:
+        print(f'Downsampling with factor {downsampling}')
+        nx, ny = nx // downsampling, ny // downsampling
+        arr = arr[::downsampling, ::downsampling]
 
     # Plot
     print('Plotting...')
@@ -51,9 +50,9 @@ def plot(arr, downsampling=1):
             (f(-3), '#0f561e'),         # Dark green
             (f(10), '#1a8b33'),         # Nicer green
             (f(100), '#11aa15'),        # Glorious green
-            (f(300), '#e8e374'),        # Yellow
-            (f(800), '#8a4121'),        # Brownish
-            (f(1100), '#999999'),       # Grey
+            (f(300), '#e8e374'),        # Yellow at ~1000ft
+            (f(610), '#8a4121'),        # Brownish at ~2000ft
+            (f(915), '#999999'),       # Grey at ~3000ft
             (1, 'white'),
         ])
 
