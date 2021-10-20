@@ -1,7 +1,7 @@
 # Where is Ben Nevis?
 
 This repository contains the first files for a fun(?) project that tests
-optimisation methods on Ordinance Survey (OS) data for Great Brittain.
+optimisation methods on Ordinance Survey (OS) data for Great Britain.
 
 ## Requirements
 
