@@ -8,31 +8,56 @@ import wevis
 
 logging.basicConfig(stream=sys.stdout)
 
+
+class Score(pints.ErrorMeasure):
+    def __init__(self, client):
+        self._client = client
+
+    def n_parameters(self):
+        return 2
+
+    def __call__(self, p):
+        self._client.q('ask_height', x=p[0], y=p[1])
+        r = self._client.receive_blocking('tell_height')
+        return -r.get('z')
+
+
 defs = wevis.DefinitionList()
-defs.add('query', x=float, y=float)
-defs.add('response', z=float)
+defs.add('ask_height', x=float, y=float)
+defs.add('tell_height', z=float)
+defs.add('final_answer', x=float, y=float)
+defs.add('final_result', msg=str, img=bytes)
 defs.instantiate()
 
 client = wevis.Client((1, 0, 0), 'michael', 'mypassword')
 
-def f(x, y):
-    client.q('query', x=x, y=y)
-    r = client.receive_blocking('response')
-    return r.get('z')
-
 try:
     client.start_blocking()
 
-    print(f(0, 0))
-    print(f(0.4, 0.4))
-    print(f(0.42, 0.22))
-    print()
+    x0 = [0.65, 0.17]
+    lowth = Score(client)
+    if 'debug' in sys.argv:
+        x1 = x0
+        f1 = lowth(x1)
+    else:
+        opt = pints.OptimisationController(lowth, x0, method=pints.CMAES)
+        x1, f1 = opt.run()
 
-    t = pints.Timer()
-    z = [f(*np.random.random(2)) for i in range(10)]
-    print(t.format())
-    print()
-    print(z)
+    print(x1)
+    print(-f1)
+
+    client.q('final_answer', x=x1[0], y=x1[1])
+    r = client.receive_blocking('final_result')
 
 finally:
     client.stop()
+
+# Show result
+path = 'result.png'
+print(f'Writing image to {path}.')
+with open(path, 'wb') as f:
+    f.write(r.get('img'))
+
+print()
+print(r.get('msg'))
+

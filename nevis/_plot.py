@@ -11,10 +11,10 @@ Provides plotting methods.
 import numpy as np
 
 import matplotlib.colors
-import matplotlib.pyplot as plt
+import matplotlib.figure
 
 
-def plot(arr, downsampling=27):
+def plot(arr, ben=None, downsampling=27, silent=False):
     """
     Creates a plot of the 2D elevation data in ``arr``, downsampled with a
     factor ``downsampling``.
@@ -28,16 +28,19 @@ def plot(arr, downsampling=27):
     # Get extreme points
     vmin = np.min(arr)
     vmax = np.max(arr)
-    print(f'Highest point: {vmax}')
+    if not silent:
+        print(f'Highest point: {vmax}')
 
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).
     if downsampling > 1:
-        print(f'Downsampling with factor {downsampling}')
-        nx, ny = nx // downsampling, ny // downsampling
+        if not silent:
+            print(f'Downsampling with factor {downsampling}')
         arr = arr[::downsampling, ::downsampling]
+        ny, nx = arr.shape
 
     # Plot
-    print('Plotting...')
+    if not silent:
+        print('Plotting...')
 
     # Create colormap
     # f = absolute height, g = relative to vmax (and zero)
@@ -57,13 +60,14 @@ def plot(arr, downsampling=27):
         ])
 
     # Work out figure dimensions
-    dpi = 600
+    dpi = 300
     fw = nx / dpi
     fh = ny / dpi
-    print(f'Figure dimensions: {fw}" by {fh}" at {dpi} dpi')
-    print(f'Should result in {nx} by {ny} pixels.')
+    if not silent:
+        print(f'Figure dimensions: {fw}" by {fh}" at {dpi} dpi')
+        print(f'Should result in {nx} by {ny} pixels.')
 
-    fig = plt.figure(figsize=(fw, fh), dpi=dpi)
+    fig = matplotlib.figure.Figure(figsize=(fw, fh), dpi=dpi)
     fig.subplots_adjust(0, 0, 1, 1)
     ax = fig.add_subplot(1, 1, 1)
     ax.set_axis_off()
@@ -74,6 +78,12 @@ def plot(arr, downsampling=27):
         vmin=vmin,
         vmax=vmax,
     )
+
+    if ben:
+        x, y = ben[0] * nx, ben[1] * ny
+        ax.plot(
+            x, y, 'o', color='#bb00ff', fillstyle='none', label='Ben Nevis')
+        ax.legend()
 
     return fig, ax, arr
 
