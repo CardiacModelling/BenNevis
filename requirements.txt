@@ -1,3 +1,5 @@
 -e git://github.com/CardiacModelling/wevis.git#egg=wevis
-numpy
+convertbng
 matplotlib
+numpy
+scipy

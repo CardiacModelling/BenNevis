@@ -9,12 +9,18 @@ Brittain, obtained from the Ordnance Survey data set ``terr50_gagg_gb``.
 # Inspired by
 # https://scipython.com/blog/processing-uk-ordnance-survey-terrain-data/
 #
+import csv
 import os
 import sys
 import urllib.request
 import zipfile
 
+import convertbng.util as bng
 import numpy as np
+import scipy.spatial
+
+import nevis
+
 
 # Base name of the big zip file to read (e.g. to read 'terr50_gagg_gb.zip' we
 # put 'terr50_gagg_gb').
@@ -29,10 +35,15 @@ resolution = 50
 
 # Full size of the grid to construct (in meters)
 # For 'terr50_gagg_gb' we're assuming 700km by 1300km
+# Origin is a bottom left (in SV square)
 width, height = 700000, 1300000
 
 # .asc file encoding
 ENC = 'utf-8'
+
+# Hill names
+hill_zip = os.path.join(nevis.DIR_NEVIS, 'bin', 'hills.zip')
+hill_file = 'hills.csv'
 
 
 def download(url, fname):
@@ -211,4 +222,180 @@ def gb():
     arr[arr < sea] = sea
 
     return arr
+
+
+class Coords(object):
+    """
+    Coordinates, either normalised (so that 0, 0 is the bottom left of the grid
+    and 1, 1 is the top right) or as OS36GB grid points in meters.
+
+    Examples::
+
+        p = Coords(gridx=123456, gridy=123456)
+        print(p.grid)
+        print(p.normalised)
+
+        p = Coords(normx=0.5, normy=0.2)
+        print(p.grid)
+        print(p.normalised)
+
+    """
+    def __init__(self, gridx=None, gridy=None, normx=None, normy=None):
+        self.gridx = self.gridy = None
+        self.normx = self.normy = None
+
+        if gridx is not None and gridy is not None:
+            if normx is None and normy is None:
+                self.gridx = int(gridx)
+                self.gridy = int(gridy)
+                self.normx = self.gridx / width
+                self.normy = self.gridy / height
+        if normx is not None and normy is not None:
+            if gridx is None and gridy is None:
+                self.normx = float(normx)
+                self.normy = float(normy)
+                self.gridx = int(self.normx * width)
+                self.gridy = int(self.normy * height)
+        if self.gridx is None:
+            raise ValueError(
+                'Either (gridx and gridy) or (normx and normy) must be'
+                'specified (and not both).')
+
+        self._latlong = None
+
+    @property
+    def grid(self):
+        return self.gridx, self.gridy
+
+    @property
+    def normalised(self):
+        return self.normx, self.normy
+
+    @property
+    def latlong(self):
+        if self._latlong is None:
+            long, lat = bng.convert_lonlat([self.gridx], [self.gridy])
+            self._latlong = lat[0], long[0]
+        return self._latlong
+
+    @property
+    def google(self):
+        lat, long = self.latlong
+        return f'https://www.google.com/maps/@{lat},{long},14z'
+
+    def __str__(self):
+        return f'({self.normx}, {self.normy})'
+
+
+def ben():
+    """ Returns the coordinates of Ben Nevis. """
+    return Coords(gridx=216666, gridy=771288)
+
+
+class Hill(object):
+    """
+    Known hill tops.
+
+    Examples::
+
+        print(Hill.by_name('Ben Nevis')
+        print(Hill.by_rank(1))
+        print(Hill.by_rank(2))
+        print(Hill.by_rank(3))
+
+        h, d = Hill.nearest(Coords(gridx=216600, gridy=771300))
+        print(h)
+
+    """
+    _hills = []
+    _names = {}
+    _tree = None
+
+    def __init__(self, x, y, rank, height, name):
+        if Hill._tree is not None:
+            raise ValueError('Cannot add hills after tree construction.')
+        self._x = int(x)
+        self._y = int(y)
+        self._rank = int(rank)
+        self._height = float(height)
+        self._name = name.strip()
+        Hill._hills.append(self)
+        Hill._names[self._name.lower()] = self
+
+    @staticmethod
+    def _load():
+        """ Loads hills into memory. """
+
+        # Unzip
+        with zipfile.ZipFile(hill_zip, 'r') as f:
+            with f.open(hill_file, 'r') as g:
+                lines = g.read().decode('utf-8')
+        lines = lines.splitlines()
+        rows = iter(csv.reader(lines, delimiter=',', quotechar='"'))
+
+        # Parse header
+        fields = ['x', 'y', 'rank', 'meters', 'name']
+        header = next(rows)
+        try:
+            indices = [header.index(field) for field in fields]
+        except ValueError as e:
+            raise ValueError(f'Unable to read hill-file header: {e}')
+
+        # Parse data
+        coords = []
+        for row in rows:
+            Hill(*[row[i] for i in indices])
+            coords.append([row[indices[0]], row[indices[1]]])
+
+        # Construct tree
+        Hill._tree = scipy.spatial.KDTree(np.array(coords))
+
+    @staticmethod
+    def by_name(name):
+        """ Return a hill with the given ``name``. """
+        if not Hill._hills:
+            Hill._load()
+        return Hill._names[name.lower()]
+
+    @staticmethod
+    def by_rank(rank):
+        """
+        Return the hill with the given ``rank`` (rank 1 is heighest, then 2,
+        etc.).
+        """
+        if not Hill._hills:
+            Hill._load()
+        hill = Hill._hills[rank - 1]
+        assert hill.rank == rank, 'Hills not ordered by rank'
+        return hill
+
+    @staticmethod
+    def nearest(coords):
+        """
+        Returns a tuple (hill, distance) with the hill nearest to the given
+        points.
+        """
+        if not Hill._hills:
+            Hill._load()
+        d, h = Hill._tree.query([coords.gridx, coords.gridy])
+        return Hill._hills[h], d
+
+    @property
+    def coords(self):
+        return Coords(gridx=self._x, gridy=self._y)
+
+    @property
+    def height(self):
+        return self._height
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def rank(self):
+        return self._rank
+
+    def __str__(self):
+        return f'{self._name} ({self.height}m)'
 

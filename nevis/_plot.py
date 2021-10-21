@@ -8,11 +8,11 @@ Provides plotting methods.
 # Inspired by
 # https://scipython.com/blog/processing-uk-ordnance-survey-terrain-data/
 #
-import numpy as np
-
 import matplotlib.colors
 import matplotlib.figure
+import numpy as np
 
+import nevis
 
 def plot(arr, ben=None, downsampling=27, silent=False):
     """
@@ -80,9 +80,14 @@ def plot(arr, ben=None, downsampling=27, silent=False):
     )
 
     if ben:
-        x, y = ben[0] * nx, ben[1] * ny
-        ax.plot(
-            x, y, 'o', color='#bb00ff', fillstyle='none', label='Ben Nevis')
+        if isinstance(ben, nevis.Coords):
+            x, y = ben.normalised
+            print(x, y)
+        else:
+            # Assume normalised
+            x, y = ben
+        ax.plot(x * nx, y * ny, 'o',
+                color='#bb00ff', fillstyle='none', label='Ben Nevis')
         ax.legend()
 
     return fig, ax, arr

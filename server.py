@@ -52,13 +52,17 @@ class BenNevisServer(wevis.Room):
                 fig.savefig(path)
                 del(fig)
                 with open(path, 'rb') as f:
-                    b = f.read()
+                    img = f.read()
 
-            connection.q(
-                'final_result',
-                msg='Congratulations',
-                img=b
-            )
+            # Get nearest hill top
+            c = nevis.Coords(normx=x, normy=y)
+            h, d = nevis.Hill.nearest(c)
+            d = int(round(d))
+            msg = (f'Congratulations! You landed {d} meters from {h.name}'
+                   f' {c.google}')
+
+            # Send reply
+            connection.q('final_result', msg=msg, img=img)
 
         else:
             raise Exception(f'Unexpected message: {message.name}')
