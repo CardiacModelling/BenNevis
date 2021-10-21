@@ -11,14 +11,16 @@ import wevis
 import nevis
 
 
-def version_validator(major, minor, revision):
-    return True
+class BenNevisUser(wevis.User):
 
+    def __init__(self, username):
+        super().__init__(username)
 
-def user_validator(username, password, salt):
-    if username == 'michael' and password == wevis.encrypt('mypassword', salt):
-        return wevis.User('michael')
-    return False
+        # Set transformations and rotation
+        self._scaling = np.exp(25 * (np.random.random() - 0.5))
+        r = np.random.random() * 2 * np.pi
+        self._rotation = np.array(
+            [[np.cos(r), -np.sin(r)], [np.sin(r), np.cos(r)]])
 
 
 class BenNevisServer(wevis.Room):
@@ -66,6 +68,22 @@ class BenNevisServer(wevis.Room):
 
         else:
             raise Exception(f'Unexpected message: {message.name}')
+
+
+def version_validator(major, minor, revision):
+    return True
+
+
+def user_validator(username, password, salt):
+    plain = {
+        'michael': 'mypassword'
+    }
+    try:
+        if password == wevis.encrypt(plain[username], salt):
+            return BenNevisUser(username)
+    except KeyError:
+        pass
+    return False
 
 
 if __name__ == '__main__':
