@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
+#
+# Example client program that performs a fit with CMA-ES
+#
 import logging
+import os
 import sys
 
 import numpy as np
@@ -23,33 +27,35 @@ class Score(pints.ErrorMeasure):
 
 
 defs = wevis.DefinitionList()
-defs.add('initial_point', x=float, y=float)
+defs.add('boundaries', xlo=float, xhi=float, ylo=float, yhi=float)
 defs.add('ask_height', x=float, y=float)
 defs.add('tell_height', z=float)
 defs.add('final_answer', x=float, y=float)
 defs.add('final_result', msg=str, img=bytes)
 defs.instantiate()
 
-username = 'michael' if len(sys.argv) < 2 else sys.argv[1]
-client = wevis.Client((1, 0, 0), username, username)
+client = wevis.Client((1, 0, 0), 'test', 'ps4w69uebj2af3jcON')
 
 try:
+    print('Starting client...')
     client.start_blocking()
 
-    r = client.receive_blocking('initial_point')
-    x0 = [r.get('x'), r.get('y')]
-    print(f'Initial coordinates: {r.get("x")}, {r.get("y")}')
+    # Create boundaries
+    print('Received boundaries...')
+    r = client.receive_blocking('boundaries')
+    lower = np.array([r.get('xlo'), r.get('ylo')])
+    upper = np.array([r.get('xhi'), r.get('yhi')])
+    b = pints.RectangularBoundaries(lower, upper)
 
+    print('Starting optimisation...')
     lowth = Score(client)
-    if False:
-        x1 = x0
+    if 'debug' in sys.argv:
+        x1 = x0 = np.array([0, 0])
         f1 = lowth(x1)
     else:
+        x0 = b.sample()
         opt = pints.OptimisationController(lowth, x0, method=pints.CMAES)
         x1, f1 = opt.run()
-
-    print(x1)
-    print(-f1)
 
     client.q('final_answer', x=x1[0], y=x1[1])
     r = client.receive_blocking('final_result')
@@ -58,7 +64,9 @@ finally:
     client.stop()
 
 # Show result
-path = 'result.png'
+if not os.path.isdir('results'):
+    os.makedirs('results')
+path = 'results/client-fit-result.png'
 print(f'Writing image to {path}.')
 with open(path, 'wb') as f:
     f.write(r.get('img'))

@@ -14,14 +14,11 @@ venv
 # DS Store
 .DS_Store
 
-# Downloaded map zip
-terr50_gagg_gb.zip
+# Downloaded and unzipped terrain 50 data
+data/terr50_gagg_gb.*
 
-# Cached map array
-terr50_gagg_gb.npy
+# User login tokens
+data/tokens.txt
 
-# Potentially massive image
-gb.png
-
-# Fitting result
-result.png
+# Local results
+results

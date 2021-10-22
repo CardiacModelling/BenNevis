@@ -2,8 +2,10 @@
 #
 # Load the data and plot a map of GB.
 #
-import nevis
+import os
 import sys
+
+import nevis
 
 # Get normalised coordinates
 ben = None
@@ -18,5 +20,7 @@ arr = nevis.gb()
 fig, ax, arr = nevis.plot(arr, ben=ben, downsampling=27)
 
 # Save plot, and check resulting image dimensions
-nevis.save_plot('gb.png', fig, arr)
+if not os.path.isdir('results'):
+    os.makedirs('results')
+nevis.save_plot('results/gb.png', fig, arr)
 

@@ -14,51 +14,79 @@ import nevis
 
 class BenNevisUser(wevis.User):
 
+    # Log-in credentials
+    _user_tokens = None
+
     def __init__(self, username):
         super().__init__(username)
 
         # Status
         self.has_finished = False
 
-        # Scaling: We start from x,y,z all in meters, and then scale by the
-        # same factor to ensure a result that preserves angles.
-        self._scale = np.exp(25 * (np.random.random() - 0.5))
-
-        # Rotation
+        # Rotation around center
+        d = np.array(nevis.dimensions())
+        self._center = d / 2
         r = np.random.random() * 2 * np.pi
         self._rotation = np.array(
             [[np.cos(r), -np.sin(r)], [np.sin(r), np.cos(r)]])
 
-        if username == 'debug':
-            self._scale = 1
-            self._rotation = np.eye(2)
+        # Translation: we translate x, y, z by some fixed degree
+        self._translation = (np.random.random(2) - 0.5) * d
+        # We don't scale: because we give boundaries users can already guess
+        # the scale of the system
 
-    def grid_to_mystery(self, x, y, z=None):
+        # Allow exploration by special user
+        if username == 'explore':
+            self._rotation = np.eye(2)
+            self._translation = np.zeros(2)
+
+    def grid_to_mystery(self, x, y):
         """ Translate grid coordinates (meters) to mystery coordinates. """
-        return np.dot(self._rotation, np.array([x, y]) * self._scale)
+        return np.dot(self._rotation, np.array([x, y]) - self._center)
 
     def mystery_to_grid(self, x, y):
         """ Translate mystery coordinates to grid coordinates (meters). """
-        return np.dot(self._rotation.T, np.array([x, y])) / self._scale
+        return np.dot(self._rotation.T, np.array([x, y])) + self._center
 
-    def mystery_height(self, z):
-        """ Translate a real height in meters into a mystery height. """
-        return z * self._scale
+    @staticmethod
+    def load_user_tokens():
+        """ Load login tokens. """
+        BenNevisUser._user_tokens = {
+            'test': 'ps4w69uebj2af3jcON',
+            'explore': 'q4n5nf4508gnv89y6f',
+        }
+
+        path = 'data/tokens.txt'
+        if not os.path.isfile(path):
+            return
+        print(f'Reading user login tokens from {path}')
+        tokens = {}
+        try:
+            with open(path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    user, token = line.split(':', 2)
+                    user = user.strip()
+                    token = token.strip()
+                    if user and token:
+                        tokens[user] = token
+                    else:
+                        raise ValueError('Empty user and/or token')
+        except Exception as e:
+            raise RuntimeError(
+                f'Unable to parse user tokens from {path}') from e
 
     @staticmethod
     def validate(username, password, salt):
         """ Validate a username. """
-        tokens = {
-            'debug': 'debug',
-            'ben': 'ben',
-            'michael': 'michael',
-        }
-        try:
-            if password == wevis.encrypt(tokens[username], salt):
-                return BenNevisUser(username)
-        except KeyError:
-            pass
-        return False
+        if BenNevisUser._user_tokens is None:
+            BenNevisUser._load_user_tokens()
+        token = BenNevisUser._user_tokens.get(username, '')
+        if token == '' or password != wevis.encrypt(token, salt):
+            return False
+        return BenNevisUser(username)
 
 
 class BenNevisServer(wevis.Room):
@@ -66,6 +94,9 @@ class BenNevisServer(wevis.Room):
         super().__init__()
         self._d = heights
         self._f = function
+
+        # Search boundaries: no scaling, so always the same
+        self._b = max(nevis.dimensions()) * 2
 
     def handle(self, connection, message):
 
@@ -78,7 +109,7 @@ class BenNevisServer(wevis.Room):
             x, y = connection.user.mystery_to_grid(x, y)
             z = self._f(x, y)
             #print(f'query {x} {y} {z}')
-            connection.q('tell_height', z=connection.user.mystery_height(z))
+            connection.q('tell_height', z=z)
 
         elif message.name == 'final_answer':
             connection.user.has_finished=True
@@ -121,13 +152,9 @@ class BenNevisServer(wevis.Room):
 
     def welcome(self, connection):
 
-        # Send user initial point
-        if connection.user.name == 'ben':
-            c = nevis.ben()
-        else:
-            c = nevis.pub('Canal house')
-        x, y = connection.user.grid_to_mystery(c.gridx, c.gridy)
-        connection.q('initial_point', x=x, y=y)
+        # Send user boundaries
+        b = self._b
+        connection.q('boundaries', xlo=-b, xhi=b, ylo=-b, yhi=b)
 
 
 def version_validator(major, minor, revision):
@@ -136,6 +163,17 @@ def version_validator(major, minor, revision):
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stdout)
+    print('                           ')
+    print(' Starting Ben      Nevis   ')
+    print('               /\    Server')
+    print('            /\/--\         ')
+    print('           /---   \/\      ')
+    print('        /\/   /\  /  \     ')
+    print('     /\/  \  /  \/    \    ')
+    print('    /      \/          \   ')
+
+    # Load user tokens
+    BenNevisUser.load_user_tokens()
 
     # Load data
     heights = nevis.gb()
@@ -161,7 +199,7 @@ if __name__ == '__main__':
 
     wevis.set_logging_level(logging.INFO)
     defs = wevis.DefinitionList()
-    defs.add('initial_point', x=float, y=float)
+    defs.add('boundaries', xlo=float, ylo=float, xhi=float, yhi=float)
     defs.add('ask_height', x=float, y=float)
     defs.add('tell_height', z=float)
     defs.add('final_answer', x=float, y=float)

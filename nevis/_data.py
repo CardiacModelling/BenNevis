@@ -23,9 +23,12 @@ import scipy.spatial
 import nevis
 
 
+# Data directory
+data = 'data'
+
 # Base name of the big zip file to read (e.g. to read 'terr50_gagg_gb.zip' we
 # put 'terr50_gagg_gb').
-fname = 'terr50_gagg_gb'
+terrain_file = 'terr50_gagg_gb'
 
 # URL to download it from
 url = ('https://api.os.uk/downloads/v1/products/Terrain50/downloads?'
@@ -43,7 +46,7 @@ width, height = 700000, 1300000
 ENC = 'utf-8'
 
 # Hill names
-hill_zip = os.path.join(nevis.DIR_NEVIS, 'bin', 'hills.zip')
+hill_zip = os.path.join(data, 'hills.zip')
 hill_file = 'hills.csv'
 
 
@@ -51,6 +54,7 @@ def download(url, fname):
     """
     Downloads the (160mb) gagg file from Ordnance Survey.
     """
+    fname = os.path.join(data, fname)
     if os.path.isfile(fname):
         return
 
@@ -81,13 +85,14 @@ def extract(basename, arr, resolution, print_to_screen=True):
     The resolution of each file inside the zip must be the same, and must be
     specified as ``resolution``.
     """
+    fname = os.path.join(data, f'{basename}.zip')
 
     # Open zip file
     if print_to_screen:
-        print(f'Reading from {basename}.zip')
+        print(f'Reading from {fname}')
         i = 0
 
-    with zipfile.ZipFile(f'{basename}.zip', 'r') as f:
+    with zipfile.ZipFile(fname, 'r') as f:
         # Browse to inner directory, and then data directory
         dir_data = zipfile.Path(f).joinpath(basename).joinpath('data')
 
@@ -95,10 +100,9 @@ def extract(basename, arr, resolution, print_to_screen=True):
         for dir_square in dir_data.iterdir():
             for path in dir_square.iterdir():
                 if os.path.splitext(path.name)[1] == '.zip':
-
                     # Remove zipfile name from path. No idea if there isn't an
                     # easier way to do this...
-                    partial_path = str(path)[len(basename) + 5:]
+                    partial_path = str(path)[len(fname) + 1:]
 
                     # Read .asc data from embedded zip file
                     read_nested_zip(f, partial_path, arr, resolution)
@@ -197,23 +201,23 @@ def gb():
 
     # Read data or cached data
     nx, ny = width // resolution, height // resolution
-    cached = f'{fname}.npy'
+    cached = os.path.join(data, terrain_file + '.npy')
     if os.path.isfile(cached):
         print('Loading...')
         arr = np.load(cached)
     else:
         # Ensure zip is downloaded
-        download(url, f'{fname}.zip')
+        download(url, f'{terrain_file}.zip')
 
         # Create empty array
         arr = np.empty((ny, nx), dtype=np.float32)
         arr.fill(np.nan)
 
         # Fill it up
-        extract(fname, arr, resolution)
+        extract(terrain_file, arr, resolution)
 
-        print('Saving...')
-        np.save(f'{fname}.npy', arr)
+        print(f'Saving to {cached}...')
+        np.save(cached, arr)
 
     # Replace missing values by far-below-sea level
     arr[np.isnan(arr)] = -10
