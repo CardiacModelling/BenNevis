@@ -82,7 +82,6 @@ def plot(arr, ben=None, downsampling=27, silent=False):
     if ben:
         if isinstance(ben, nevis.Coords):
             x, y = ben.normalised
-            print(x, y)
         else:
             # Assume normalised
             x, y = ben

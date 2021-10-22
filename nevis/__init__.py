@@ -23,9 +23,11 @@ finally:
 # Create public API
 from ._data import (    # noqa
     ben,
+    dimensions,
     gb,
     Coords,
     Hill,
+    pub,
 )
 from ._plot import (    # noqa
     plot,

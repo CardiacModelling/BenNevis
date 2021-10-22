@@ -23,20 +23,25 @@ class Score(pints.ErrorMeasure):
 
 
 defs = wevis.DefinitionList()
+defs.add('initial_point', x=float, y=float)
 defs.add('ask_height', x=float, y=float)
 defs.add('tell_height', z=float)
 defs.add('final_answer', x=float, y=float)
 defs.add('final_result', msg=str, img=bytes)
 defs.instantiate()
 
-client = wevis.Client((1, 0, 0), 'michael', 'mypassword')
+username = 'michael' if len(sys.argv) < 2 else sys.argv[1]
+client = wevis.Client((1, 0, 0), username, username)
 
 try:
     client.start_blocking()
 
-    x0 = [0.65, 0.17]
+    r = client.receive_blocking('initial_point')
+    x0 = [r.get('x'), r.get('y')]
+    print(f'Initial coordinates: {r.get("x")}, {r.get("y")}')
+
     lowth = Score(client)
-    if 'debug' in sys.argv:
+    if False:
         x1 = x0
         f1 = lowth(x1)
     else:

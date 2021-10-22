@@ -11,6 +11,7 @@ Brittain, obtained from the Ordnance Survey data set ``terr50_gagg_gb``.
 #
 import csv
 import os
+import random
 import sys
 import urllib.request
 import zipfile
@@ -278,18 +279,47 @@ class Coords(object):
             self._latlong = lat[0], long[0]
         return self._latlong
 
+    #@property
+    #def geograph(self):
+    #    return f'http://www.geograph.org.uk/gridref/NN8371434465
+    # Requires the grid letters!
+
     @property
     def google(self):
         lat, long = self.latlong
-        return f'https://www.google.com/maps/@{lat},{long},14z'
+        return (
+            'https://www.google.com/maps/@?api=1&map_action=map'
+            f'&center={lat},{long}&zoom=15&basemap=terrain')
 
     def __str__(self):
-        return f'({self.normx}, {self.normy})'
+        return f'Coords({int(round(self.gridx))}, {int(round(self.gridy))})'
+
+
+def dimensions():
+    """ Returns the dimensions of the grid (width, height) in meters. """
+    return width, height
+
+
+Coords.ben = Coords(gridx=216666, gridy=771288)
+Coords.pub = {
+    #'Ye olde trip to jerusalem': Coords(gridx=457034, gridy=339443},
+    'Bear': Coords(gridx=451473, gridy=206135),
+    'Canal house': Coords(gridx=457307, gridy=339326),
+    'MacSorleys': Coords(gridx=258809, gridy=665079),
+    'Sheffield tap': Coords(gridx=435847, gridy=387030),
+}
 
 
 def ben():
     """ Returns the coordinates of Ben Nevis. """
-    return Coords(gridx=216666, gridy=771288)
+    return Coords.ben
+
+
+def pub(name=None):
+    """ Returns coordinates where a mathematician may be found. """
+    if name:
+        return Coords.pub[name]
+    return random.choice(list(Coords.pub.values()))
 
 
 class Hill(object):
