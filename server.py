@@ -162,7 +162,12 @@ def version_validator(major, minor, revision):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stdout)
+    level = None
+    if 'verbose' in sys.argv:
+        level = logging.DEBUG
+        wevis.set_logging_level(level)
+    logging.basicConfig(stream=sys.stdout, level=level)
+
     print('                           ')
     print(' Starting Ben      Nevis   ')
     print('               /\    Server')
@@ -196,8 +201,6 @@ if __name__ == '__main__':
     f = lambda x, y: s(y, x)[0][0]
     print(f'Completed in {t.format()}')
 
-
-    wevis.set_logging_level(logging.INFO)
     defs = wevis.DefinitionList()
     defs.add('boundaries', xlo=float, ylo=float, xhi=float, yhi=float)
     defs.add('ask_height', x=float, y=float)

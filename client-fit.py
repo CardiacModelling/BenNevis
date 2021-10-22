@@ -41,7 +41,7 @@ try:
     client.start_blocking()
 
     # Create boundaries
-    print('Received boundaries...')
+    print('Waiting for boundaries...')
     r = client.receive_blocking('boundaries')
     lower = np.array([r.get('xlo'), r.get('ylo')])
     upper = np.array([r.get('xhi'), r.get('yhi')])
