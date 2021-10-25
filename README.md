@@ -4,7 +4,7 @@ This repository contains the first files for a fun(?) project that tests optimis
 
 ## Requirements
 
-Python 3.5 or higher, with numpy and matplotlib.
+Python 3.8 or higher, with pip-installable dependencies listed in `requirements.txt` (you can install these with `pip install -r requirements.txt`).
 
 When first run, this script will download the data from the OS (about 160MB) and then convert it to a NumPy array stored on disk (about 1.5GB).
 
