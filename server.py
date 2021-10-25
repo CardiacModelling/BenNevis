@@ -32,21 +32,36 @@ class BenNevisUser(wevis.User):
 
         # Translation: we translate x, y, z by some fixed degree
         self._translation = (np.random.random(2) - 0.5) * d
-        # We don't scale: because we give boundaries users can already guess
-        # the scale of the system
 
         # Allow exploration by special user
         if username == 'explore':
             self._rotation = np.eye(2)
             self._translation = np.zeros(2)
 
+        # Boundaries
+        edges = np.array([
+            self.grid_to_mystery(x, y)
+            for x, y in ((0, 0), (0, d[1]), (d[0], 0), (d[0], d[1]))
+        ])
+        self.lower = np.min(edges, axis=0)
+        self.upper = np.max(edges, axis=0)
+        if username != 'explore':
+            self.lower *= 1.1 + 0.2 * np.random.random(2)
+            self.upper *= 1.1 + 0.2 * np.random.random(2)
+
+        # Requested points
+        self.points = []
+        self.means = []
+
     def grid_to_mystery(self, x, y):
         """ Translate grid coordinates (meters) to mystery coordinates. """
-        return np.dot(self._rotation, np.array([x, y]) - self._center)
+        return (np.dot(self._rotation, np.array([x, y]) - self._center)
+                + self._translation)
 
     def mystery_to_grid(self, x, y):
         """ Translate mystery coordinates to grid coordinates (meters). """
-        return np.dot(self._rotation.T, np.array([x, y])) + self._center
+        return (np.dot(self._rotation.T,
+                       (np.array([x, y]) - self._translation)) + self._center)
 
     @staticmethod
     def load_user_tokens():
@@ -95,9 +110,6 @@ class BenNevisServer(wevis.Room):
         self._d = heights
         self._f = function
 
-        # Search boundaries: no scaling, so always the same
-        self._b = max(nevis.dimensions()) * 2
-
     def handle(self, connection, message):
 
         if message.name == 'ask_height':
@@ -109,6 +121,7 @@ class BenNevisServer(wevis.Room):
             x, y = connection.user.mystery_to_grid(x, y)
             z = self._f(x, y)
             #print(f'query {x} {y} {z}')
+            connection.user.points.append((x, y))
             connection.q('tell_height', z=z)
 
         elif message.name == 'final_answer':
@@ -121,7 +134,11 @@ class BenNevisServer(wevis.Room):
             # Create figure
             d = 3 if 'debug' in sys.argv else 27
             fig, ax, data = nevis.plot(
-                self._d, ben=c, downsampling=d, silent=True)
+                self._d,
+                ben=c,
+                points=np.array(connection.user.points),
+                downsampling=d,
+                silent=True)
             del(data)
 
             # Get figure bytes
@@ -150,19 +167,27 @@ class BenNevisServer(wevis.Room):
         else:
             raise Exception(f'Unexpected message: {message.name}')
 
-    def welcome(self, connection):
+    def user_enter(self, connection):
 
         # Send user boundaries
-        b = self._b
-        connection.q('boundaries', xlo=-b, xhi=b, ylo=-b, yhi=b)
+        user = connection.user
+        connection.q(
+            'boundaries',
+            xlo=user.lower[0],
+            ylo=user.lower[1],
+            xhi=user.upper[0],
+            yhi=user.upper[1],
+        )
 
+    def user_exit(self, user):
+        pass
 
 def version_validator(major, minor, revision):
     return True
 
 
 if __name__ == '__main__':
-    level = None
+    level = logging.INFO
     if 'verbose' in sys.argv:
         level = logging.DEBUG
         wevis.set_logging_level(level)
@@ -205,6 +230,7 @@ if __name__ == '__main__':
     defs.add('boundaries', xlo=float, ylo=float, xhi=float, yhi=float)
     defs.add('ask_height', x=float, y=float)
     defs.add('tell_height', z=float)
+    defs.add('mean', x=float, y=float)
     defs.add('final_answer', x=float, y=float)
     defs.add('final_result', msg=str, img=bytes)
     defs.add('error', msg=str)

@@ -24,7 +24,7 @@ class Score(pints.ErrorMeasure):
 
 
 defs = wevis.DefinitionList()
-defs.add('initial_point', x=float, y=float)
+defs.add('boundaries', xlo=float, xhi=float, ylo=float, yhi=float)
 defs.add('ask_height', x=float, y=float)
 defs.add('tell_height', z=float)
 defs.add('final_answer', x=float, y=float)
@@ -36,23 +36,17 @@ client = wevis.Client((1, 0, 0), 'explore', 'q4n5nf4508gnv89y6f')
 try:
     client.start_blocking()
 
-    r = client.receive_blocking('initial_point')
-    x0 = [r.get('x'), r.get('y')]
-    print(f'Initial coordinates: {r.get("x")}, {r.get("y")}')
+    r = client.receive_blocking('boundaries')
+
+    lower = np.array([r.get('xlo'), r.get('ylo')])
+    upper = np.array([r.get('xhi'), r.get('yhi')])
+    print(f'Boundaries: {lower}, {upper}')
 
     lowth = Score(client)
-    if False:
-        x1 = x0
-        f1 = lowth(x1)
-    else:
-        opt = pints.OptimisationController(lowth, x0, method=pints.CMAES)
-        x1, f1 = opt.run()
+    x = np.array([0, 0])
+    f = lowth(x)
 
-    print(x1)
-    print(-f1)
 
-    client.q('final_answer', x=x1[0], y=x1[1])
-    r = client.receive_blocking('final_result')
 
 finally:
     client.stop()
@@ -61,10 +55,7 @@ finally:
 if not os.path.isdir('results'):
     os.makedirs('results')
 path = 'results/result.png'
-print(f'Writing image to {path}.')
-with open(path, 'wb') as f:
-    f.write(r.get('img'))
-
-print()
-print(r.get('msg'))
+#print(f'Writing image to {path}.')
+#with open(path, 'wb') as f:
+#    f.write(r.get('img'))
 

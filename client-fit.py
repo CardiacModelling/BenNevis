@@ -30,6 +30,7 @@ defs = wevis.DefinitionList()
 defs.add('boundaries', xlo=float, xhi=float, ylo=float, yhi=float)
 defs.add('ask_height', x=float, y=float)
 defs.add('tell_height', z=float)
+defs.add('mean', x=float, y=float)
 defs.add('final_answer', x=float, y=float)
 defs.add('final_result', msg=str, img=bytes)
 defs.instantiate()
@@ -50,13 +51,15 @@ try:
     print('Starting optimisation...')
     lowth = Score(client)
     if 'debug' in sys.argv:
-        x1 = x0 = np.array([0, 0])
+        x1 = x0 = (upper + lower) / 2
         f1 = lowth(x1)
     else:
         x0 = b.sample()
-        opt = pints.OptimisationController(lowth, x0, method=pints.CMAES)
+        opt = pints.OptimisationController(
+            lowth, x0, boundaries=b, method=pints.CMAES)
         x1, f1 = opt.run()
 
+    print('Sending final answer...')
     client.q('final_answer', x=x1[0], y=x1[1])
     r = client.receive_blocking('final_result')
 

@@ -14,7 +14,9 @@ import numpy as np
 
 import nevis
 
-def plot(arr, ben=None, downsampling=27, silent=False):
+
+def plot(arr, ben=None, trajectory=None, points=None, downsampling=27,
+         silent=False):
     """
     Creates a plot of the 2D elevation data in ``arr``, downsampled with a
     factor ``downsampling``.
@@ -22,6 +24,25 @@ def plot(arr, ben=None, downsampling=27, silent=False):
     Returns a tuple ``(fig, ax, arr)`` where ``fig`` is the created figure,
     ``ax`` is the axes the image is plotted on, and ``arr`` is the downsampled
     numpy array.
+
+    Arguments:
+
+    ``arr``
+        The terrain data.
+    ``ben``
+        An optional best guess of where Ben Nevis is (as Coords or in meters).
+    ``trajectory``
+        An optional array of shape ``(n_points, 2)`` indicating the trajectory
+        followed to get to Ben Nevis.
+    ``points``
+        An optional array of shape ``(n_points, 2)`` indicating points on the
+        map.
+    ``downsampling``
+        Set to any integer to set the amount of downsampling (the ratio of data
+        points to pixels in either direction).
+    ``silent``
+        Set to ``True`` to stop writing a status to stdout.
+
     """
     ny, nx = arr.shape
 
@@ -55,12 +76,12 @@ def plot(arr, ben=None, downsampling=27, silent=False):
             (f(100), '#11aa15'),        # Glorious green
             (f(300), '#e8e374'),        # Yellow at ~1000ft
             (f(610), '#8a4121'),        # Brownish at ~2000ft
-            (f(915), '#999999'),       # Grey at ~3000ft
+            (f(915), '#999999'),        # Grey at ~3000ft
             (1, 'white'),
         ])
 
     # Work out figure dimensions
-    dpi = 300
+    dpi = 200
     fw = nx / dpi
     fh = ny / dpi
     if not silent:
@@ -78,15 +99,35 @@ def plot(arr, ben=None, downsampling=27, silent=False):
         vmin=vmin,
         vmax=vmax,
     )
+    ax.set_xlim(0, nx)
+    ax.set_ylim(0, ny)
 
-    if ben:
-        if isinstance(ben, nevis.Coords):
-            x, y = ben.normalised
-        else:
-            # Assume normalised
-            x, y = ben
+    # Show requested points
+    if points is not None:
+        d = nevis.dimensions()
+        x = points[:, 0] / d[0]
+        y = points[:, 1] / d[1]
+        ax.plot(
+            x * nx, y * ny, 'x', color='#0000ff',
+            markeredgewidth=0.5, markersize=4)
+
+    # Show trajectory
+    if trajectory is not None:
+        d = nevis.dimensions()
+        x = trajectory[:, 0] / d[0]
+        y = trajectory[:, 1] / d[1]
+        ax.plot(
+            x * nx, y * ny, 'o-', color='#000000',
+            lw=0.5, markeredgewidth=0.5, markersize=3)
+
+    # Show final result
+    if ben is not None:
+        if not isinstance(ben, nevis.Coords):
+            # Assume meters
+            ben = nevis.Coords(gridx=ben[0], gridy=ben[1])
+        x, y = ben.normalised
         ax.plot(x * nx, y * ny, 'o',
-                color='#bb00ff', fillstyle='none', label='Ben Nevis')
+                color='#4444ff', fillstyle='none', label='Ben Nevis')
         ax.legend()
 
     return fig, ax, arr

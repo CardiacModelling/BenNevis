@@ -65,7 +65,7 @@ def download(url, fname):
         print('Aborting...')
         sys.exit(1)
 
-    print('Downloading...')
+    print('Downloading terrain data...')
     url = urllib.request.urlopen(url)
     try:
         raw_data = url.read()
@@ -203,7 +203,7 @@ def gb():
     nx, ny = width // resolution, height // resolution
     cached = os.path.join(data, terrain_file + '.npy')
     if os.path.isfile(cached):
-        print('Loading...')
+        print('Loading terrain data...')
         arr = np.load(cached)
     else:
         # Ensure zip is downloaded
