@@ -15,6 +15,7 @@ venv
 .DS_Store
 
 # Downloaded and unzipped terrain 50 data
+data/terr50_gagg_gb
 data/terr50_gagg_gb.*
 
 # User login tokens
