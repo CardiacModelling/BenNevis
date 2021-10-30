@@ -1,4 +1,4 @@
--e git://github.com/CardiacModelling/wevis.git#egg=wevis
+https://github.com/MichaelClerx/wevis
 convertbng>=0.6.32
 matplotlib
 numpy
