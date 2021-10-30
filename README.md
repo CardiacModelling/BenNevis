@@ -10,13 +10,18 @@ When first run, this script will download the data from the OS (about 160MB) and
 
 ## Usage
 
-Run `plot_gb.py`.
-Don't worry, it'll be a lot faster the 2nd time.
+After downloading, run `gb.py` to download and unpack the data and test that all went well by plotting a map of great brittain.
+(Don't worry, it'll be a lot faster the 2nd time.)
 
 The amount of downscaling can be set using the variable ``downsampling``.
 An example with ``downsampling=32`` is shown below.
 
 ![Downscaled map of GB](gb-small.png)
+
+If this works, you can
+
+- Start a server with `server.py`
+- Start a client, e.g. to run a fit, with `client-fit.py`
 
 ## Data set
 
