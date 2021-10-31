@@ -26,13 +26,7 @@ class Score(pints.ErrorMeasure):
         return -r.get('z')
 
 
-defs = wevis.DefinitionList()
-defs.add('boundaries', xlo=float, xhi=float, ylo=float, yhi=float)
-defs.add('ask_height', x=float, y=float)
-defs.add('tell_height', z=float)
-defs.add('mean', x=float, y=float)
-defs.add('final_answer', x=float, y=float)
-defs.add('final_result', msg=str, img=bytes)
+defs = wevis.DefinitionList.from_file('definitions')
 defs.instantiate()
 
 client = wevis.Client((1, 0, 0), 'test', 'ps4w69uebj2af3jcON')
@@ -54,9 +48,15 @@ try:
         x1 = x0 = (upper + lower) / 2
         f1 = lowth(x1)
     else:
+        def cb(opt):
+            x = opt.xbest()
+            client.q('mean', x=x[0], y=x[1])
+
         x0 = b.sample()
         opt = pints.OptimisationController(
             lowth, x0, boundaries=b, method=pints.CMAES)
+        opt.set_callback(cb)
+        opt.set_max_unchanged_iterations(100, threshold = 0.01)
         x1, f1 = opt.run()
 
     print('Sending final answer...')

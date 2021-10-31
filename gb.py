@@ -13,7 +13,7 @@ if len(sys.argv) == 3:
     ben = nevis.Coords(normx=sys.argv[1], normy=sys.argv[2])
 
 # Show some points
-points = None
+points = trajectory = None
 if False:
     import numpy as np
     ben = nevis.ben()

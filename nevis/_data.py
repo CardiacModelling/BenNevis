@@ -438,20 +438,22 @@ class Hill(object):
     """
     _hills = []
     _names = {}
+    _ids = {}
     _tree = None
 
     def __init__(self, x, y, rank, height, hill_id, name):
         if Hill._tree is not None:
             raise ValueError('Cannot add hills after tree construction.')
-        print(x, y, rank, height, hill_id, name)
         self._x = int(x)
         self._y = int(y)
         self._rank = int(rank)
         self._height = float(height)
         self._id = int(hill_id)
         self._name = name.strip()
+        self._photo = None
         Hill._hills.append(self)
         Hill._names[self._name.lower()] = self
+        Hill._ids[self._id] = self
 
     @staticmethod
     def _load():
@@ -482,6 +484,16 @@ class Hill(object):
         Hill._tree = scipy.spatial.KDTree(np.array(coords))
 
     @staticmethod
+    def by_id(hill_id):
+        """
+        Return a hill with the given ``hill_id`` (as used on e.g. hill
+        bagging.)
+        """
+        if not Hill._hills:
+            Hill._load()
+        return Hill._ids[hill_id]
+
+    @staticmethod
     def by_name(name):
         """ Return a hill with the given ``name``. """
         if not Hill._hills:
@@ -508,7 +520,7 @@ class Hill(object):
         """
         if not Hill._hills:
             Hill._load()
-        d, h = Hill._tree.query([coords.gridx, coords.gridy])
+        d, h = Hill._tree.query([coords._gridx, coords._gridy])
         return Hill._hills[h], d
 
     @property
@@ -534,6 +546,33 @@ class Hill(object):
     @property
     def summit(self):
         return f'http://hillsummits.org.uk/htm_summit/{self._id}.htm'
+
+    @property
+    def portrait(self):
+        return f'http://hillsummits.org.uk/htm_portrait/{self._id}.htm'
+
+    def photo(self):
+        """
+        Attempts to return a URL with a photo. Returns an empty string if none
+        is found.
+        """
+        def status(url):
+            request = urllib.request.Request(url, method='HEAD')
+            try:
+                with urllib.request.urlopen(request) as f:
+                    status = f.status
+            except urllib.error.HTTPError:
+                status = 404
+            return status
+
+        if self._photo is None:
+            if status(self.summit) != 404:
+                self._photo = self.summit
+            elif status(self.portrait) != 404:
+                self._photo = self.portrait
+            else:
+                self._photo = ''
+        return self._photo
 
     def __str__(self):
         return f'{self._name} ({self.height}m)'

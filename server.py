@@ -123,6 +123,11 @@ class BenNevisServer(wevis.Room):
             connection.user.points.append((x, y))
             connection.q('tell_height', z=z)
 
+        elif message.name == 'mean':
+            x, y = message.get('x', 'y')
+            x, y = connection.user.mystery_to_grid(x, y)
+            connection.user.means.append((x, y))
+
         elif message.name == 'final_answer':
             connection.user.has_finished = True
 
@@ -131,11 +136,19 @@ class BenNevisServer(wevis.Room):
             c = nevis.Coords(gridx=x, gridy=y)
 
             # Create figure
+            points = np.array(connection.user.points)
+            if connection.user.means:
+                trajectory = np.array(connection.user.means)
+            else:
+                trajectory = points
+                points = None
+
             d = 3 if 'debug' in sys.argv else 27
             fig, ax, data = nevis.plot(
                 self._d,
                 ben=c,
-                points=np.array(connection.user.points),
+                trajectory=trajectory,
+                points=points,
                 downsampling=d,
                 silent=True)
             del(data)
@@ -151,9 +164,9 @@ class BenNevisServer(wevis.Room):
             # Get nearest hill top
             h, d = nevis.Hill.nearest(c)
             dm = f'{round(d)}m' if d < 1000 else f'{round(d / 1000, 1)}km'
-            msg = (f'You landed at {c.geograph}. The nearest hill top is'
-                   f' "{h.name}", {dm} away.')
-            if d < 50:
+            msg = (f'You landed at {c.opentopomap}. The nearest namedhill top'
+                   f' is "{h.name}", {dm} away: {h.photo()}.')
+            if d < 100:
                 msg = f'Congratulations! {msg}'
             elif d < 1000:
                 msg = f'Good job! {msg}'
@@ -226,14 +239,7 @@ if __name__ == '__main__':
     f = lambda x, y: s(y, x)[0][0]
     print(f'Completed in {t.format()}')
 
-    defs = wevis.DefinitionList()
-    defs.add('boundaries', xlo=float, ylo=float, xhi=float, yhi=float)
-    defs.add('ask_height', x=float, y=float)
-    defs.add('tell_height', z=float)
-    defs.add('mean', x=float, y=float)
-    defs.add('final_answer', x=float, y=float)
-    defs.add('final_result', msg=str, img=bytes)
-    defs.add('error', msg=str)
+    defs = wevis.DefinitionList.from_file('definitions')
     defs.instantiate()
     room = BenNevisServer(heights, f)
     server = wevis.Server(version_validator, BenNevisUser.validate, room)

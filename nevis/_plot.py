@@ -108,8 +108,8 @@ def plot(arr, ben=None, trajectory=None, points=None, downsampling=27,
         x = points[:, 0] / d[0]
         y = points[:, 1] / d[1]
         ax.plot(
-            x * nx, y * ny, 'x', color='#0000ff',
-            markeredgewidth=0.5, markersize=4)
+            x * nx, y * ny, 'x', color='#000099',
+            markeredgewidth=0.5, markersize=4, alpha=0.3)
 
     # Show trajectory
     if trajectory is not None:
@@ -127,8 +127,8 @@ def plot(arr, ben=None, trajectory=None, points=None, downsampling=27,
             ben = nevis.Coords(gridx=ben[0], gridy=ben[1])
         x, y = ben.normalised
         ax.plot(x * nx, y * ny, 'o',
-                color='#4444ff', fillstyle='none', label='Ben Nevis')
-        ax.legend()
+                color='#ff44ff', fillstyle='none', label='Ben Nevis')
+        ax.legend(loc='upper left')
 
     return fig, ax, arr
 

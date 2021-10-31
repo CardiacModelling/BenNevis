@@ -1,0 +1,17 @@
+# Once a connection is made, boundaries will be sent by the server
+boundaries, xlo=float, ylo=float, xhi=float, yhi=float
+
+# The main command and its response
+ask_height, x=float, y=float
+tell_height, z=float
+
+# Methods that use multiple points per iteration can send a mean in between
+# height requests, that will be used to show progress on the map.
+mean, x=float, y=float
+
+# Submit a final answer: after this, no more requests can be made
+final_answer, x=float, y=float
+final_result, msg=str, img=bytes
+
+# Sent if the API is used in an unexpected manner
+error, msg=str

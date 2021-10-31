@@ -23,13 +23,8 @@ class Score(pints.ErrorMeasure):
         return -r.get('z')
 
 
-defs = wevis.DefinitionList()
-defs.add('boundaries', xlo=float, xhi=float, ylo=float, yhi=float)
-defs.add('ask_height', x=float, y=float)
-defs.add('tell_height', z=float)
-defs.add('final_answer', x=float, y=float)
-defs.add('final_result', msg=str, img=bytes)
-defs.instantiate()
+defs = wevis.DefinitionList.from_file('definitions')
+defs = wevis.DefinitionList.from_file('definitions')
 
 client = wevis.Client((1, 0, 0), 'explore', 'q4n5nf4508gnv89y6f')
 
