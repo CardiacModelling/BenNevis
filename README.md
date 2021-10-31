@@ -5,6 +5,7 @@ This repository contains the first files for a fun(?) project that tests optimis
 ## Requirements
 
 Python 3.8 or higher, with pip-installable dependencies listed in `requirements.txt` (you can install these with `pip install -r requirements.txt`).
+The additional package `convertbng` is recommended, but not required.
 
 When first run, this script will download the data from the OS (about 160MB) and then convert it to a NumPy array stored on disk (about 1.5GB).
 
@@ -68,6 +69,4 @@ These are defined, it seems, by [WGS 84](https://en.wikipedia.org/wiki/World_Geo
 Transforming from national grid coordinates to longitude and lattitude is hard, and the Ordnance Survey have released a thing called [OSTN15](https://www.ordnancesurvey.co.uk/business-government/tools-support/os-net/for-developers) to do this.
 Although this still seems to result in x, y coordinates, not degrees.
 Luckily, somebody's [made a tool for it](https://github.com/urschrei/convertbng).
-
-
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import logging
 import os
-import random
 import sys
 import tempfile
 
@@ -125,7 +124,7 @@ class BenNevisServer(wevis.Room):
             connection.q('tell_height', z=z)
 
         elif message.name == 'final_answer':
-            connection.user.has_finished=True
+            connection.user.has_finished = True
 
             x, y = message.get('x', 'y')
             x, y = connection.user.mystery_to_grid(x, y)
@@ -152,7 +151,7 @@ class BenNevisServer(wevis.Room):
             # Get nearest hill top
             h, d = nevis.Hill.nearest(c)
             dm = f'{round(d)}m' if d < 1000 else f'{round(d / 1000, 1)}km'
-            msg = (f'You landed at {c.google}. The nearest hill top is'
+            msg = (f'You landed at {c.geograph}. The nearest hill top is'
                    f' "{h.name}", {dm} away.')
             if d < 50:
                 msg = f'Congratulations! {msg}'
@@ -181,6 +180,7 @@ class BenNevisServer(wevis.Room):
 
     def user_exit(self, user):
         pass
+
 
 def version_validator(major, minor, revision):
     return True

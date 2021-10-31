@@ -16,11 +16,23 @@ import sys
 import urllib.request
 import zipfile
 
-import convertbng.util as bng
 import numpy as np
 import scipy.spatial
 
-import nevis
+import bnglonlat
+
+# Get accurate longitude/lattitude, or use fallback
+try:
+    import convertbng.util
+
+    def lonlat(x, y):
+        a, b = convertbng.util.convert_lonlat([x], [y])
+        if not (np.isnan(a) or np.isnan(b)):
+            return a[0], b[0]
+        return bnglonlat.bnglonlat(x, y)
+
+except ImportError:
+    lonlat = bnglonlat.bnglonlat
 
 
 # Data directory
@@ -48,6 +60,15 @@ ENC = 'utf-8'
 # Hill names
 hill_zip = os.path.join(data, 'hills.zip')
 hill_file = 'hills.csv'
+
+# Grid letters (bottom to top, left to right)
+GL = [
+    ['V', 'W', 'X', 'Y', 'Z'],
+    ['Q', 'R', 'S', 'T', 'U'],
+    ['L', 'M', 'N', 'O', 'P'],
+    ['F', 'G', 'H', 'J', 'K'],
+    ['A', 'B', 'C', 'D', 'E'],
+]
 
 
 def download(url, fname):
@@ -236,67 +257,141 @@ class Coords(object):
 
     Examples::
 
-        p = Coords(gridx=123456, gridy=123456)
+        p = nevis.Coords(gridx=123456, gridy=123456)
         print(p.grid)
         print(p.normalised)
 
-        p = Coords(normx=0.5, normy=0.2)
+        p = nevis.Coords(normx=0.5, normy=0.2)
         print(p.grid)
         print(p.normalised)
+
+        b = nevis.ben()
+        print(b.square)
+        print(b.geograph)
 
     """
     def __init__(self, gridx=None, gridy=None, normx=None, normy=None):
-        self.gridx = self.gridy = None
-        self.normx = self.normy = None
+        self._gridx = self._gridy = None
+        self._normx = self._normy = None
 
         if gridx is not None and gridy is not None:
             if normx is None and normy is None:
-                self.gridx = int(gridx)
-                self.gridy = int(gridy)
-                self.normx = self.gridx / width
-                self.normy = self.gridy / height
+                self._gridx = int(gridx)
+                self._gridy = int(gridy)
+                self._normx = self._gridx / width
+                self._normy = self._gridy / height
         if normx is not None and normy is not None:
             if gridx is None and gridy is None:
-                self.normx = float(normx)
-                self.normy = float(normy)
-                self.gridx = int(self.normx * width)
-                self.gridy = int(self.normy * height)
-        if self.gridx is None:
+                self._normx = float(normx)
+                self._normy = float(normy)
+                self._gridx = int(self._normx * width)
+                self._gridy = int(self._normy * height)
+        if self._gridx is None:
             raise ValueError(
                 'Either (gridx and gridy) or (normx and normy) must be'
                 'specified (and not both).')
 
         self._latlong = None
+        self._square = None
+        self._square3 = None
+        self._square4 = None
+        self._square5 = None
+
+    def _find_square(self, n):
+
+        # Get letters and remaining x y
+        if self._square is None:
+            # Get first letter
+            x, y = self._gridx + 1000e3, self._gridy + 500e3
+
+            a, b = int(x // 500e3), int(x // 500e3)
+            try:
+                if a < 0 or b < 0:
+                    raise KeyError
+                name = GL[a][b]
+            except KeyError:
+                self._square = False
+            else:
+                # Get second letter
+                x, y = x % 500e3, y % 500e3
+                a, b = int(x // 100e3), int(y // 100e3)
+                name += GL[a][b]
+
+                # Get numbers
+                x, y = x % 100e3, y % 100e3
+                x, y = int(x), int(y)
+
+                # Make string
+                self._square = name, str(x), str(y)
+
+        # Make string
+        try:
+            name, x, y = self._square
+        except TypeError:
+            return 'Off the grid'
+
+        return name + x[:n] + y[:n]
 
     @property
     def grid(self):
-        return self.gridx, self.gridy
+        return self._gridx, self._gridy
 
     @property
     def normalised(self):
-        return self.normx, self.normy
+        return self._normx, self._normy
+
+    @property
+    def square3(self):
+        if self._square3 is None:
+            self._square3 = self._find_square(3)
+        return self._square3
+
+    @property
+    def square4(self):
+        if self._square4 is None:
+            self._square4 = self._find_square(4)
+        return self._square4
+
+    @property
+    def square5(self):
+        if self._square5 is None:
+            self._square5 = self._find_square(5)
+        return self._square5
 
     @property
     def latlong(self):
         if self._latlong is None:
-            long, lat = bng.convert_lonlat([self.gridx], [self.gridy])
-            self._latlong = lat[0], long[0]
+            lon, lat = lonlat(self._gridx, self._gridy)
+            self._latlong = lat, lon
         return self._latlong
 
-    #@property
-    #def geograph(self):
-    #    return f'http://www.geograph.org.uk/gridref/NN8371434465
-    # Requires the grid letters!
+    @property
+    def geograph(self):
+        return f'http://www.geograph.org.uk/gridref/{self.square5}'
 
     @property
     def google(self):
         lat, long = self.latlong
+        lat, long = round(lat, 6), round(long, 6)
         return (
             'https://www.google.com/maps/@?api=1&map_action=map'
             f'&center={lat},{long}&zoom=15&basemap=terrain')
 
+    @property
+    def osmaps(self):
+        lat, long = self.latlong
+        lat, long = round(lat, 6), round(long, 6)
+        return (
+            f'https://explore.osmaps.com/en/pin?lat={lat}&lon={long}&zoom=17')
+
+    @property
+    def opentopomap(self):
+        lat, long = self.latlong
+        lat, long = round(lat, 6), round(long, 6)
+        return f'https://opentopomap.org/#marker=15/{lat}/{long}'
+
     def __str__(self):
-        return f'Coords({int(round(self.gridx))}, {int(round(self.gridy))})'
+        return f'Coords({int(round(self._gridx))}, {int(round(self._gridy))})'
 
 
 def dimensions():
@@ -332,7 +427,7 @@ class Hill(object):
 
     Examples::
 
-        print(Hill.by_name('Ben Nevis')
+        print(Hill.by_name('Ben Nevis'))
         print(Hill.by_rank(1))
         print(Hill.by_rank(2))
         print(Hill.by_rank(3))
@@ -345,13 +440,15 @@ class Hill(object):
     _names = {}
     _tree = None
 
-    def __init__(self, x, y, rank, height, name):
+    def __init__(self, x, y, rank, height, hill_id, name):
         if Hill._tree is not None:
             raise ValueError('Cannot add hills after tree construction.')
+        print(x, y, rank, height, hill_id, name)
         self._x = int(x)
         self._y = int(y)
         self._rank = int(rank)
         self._height = float(height)
+        self._id = int(hill_id)
         self._name = name.strip()
         Hill._hills.append(self)
         Hill._names[self._name.lower()] = self
@@ -368,7 +465,7 @@ class Hill(object):
         rows = iter(csv.reader(lines, delimiter=',', quotechar='"'))
 
         # Parse header
-        fields = ['x', 'y', 'rank', 'meters', 'name']
+        fields = ['x', 'y', 'rank', 'meters', 'id', 'name']
         header = next(rows)
         try:
             indices = [header.index(field) for field in fields]
@@ -423,12 +520,20 @@ class Hill(object):
         return self._height
 
     @property
+    def hill_id(self):
+        return self._id
+
+    @property
     def name(self):
         return self._name
 
     @property
     def rank(self):
         return self._rank
+
+    @property
+    def summit(self):
+        return f'http://hillsummits.org.uk/htm_summit/{self._id}.htm'
 
     def __str__(self):
         return f'{self._name} ({self.height}m)'
