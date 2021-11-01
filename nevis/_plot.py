@@ -15,8 +15,8 @@ import numpy as np
 import nevis
 
 
-def plot(arr, ben=None, trajectory=None, points=None, downsampling=27,
-         silent=False):
+def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
+         scale_bar=True, downsampling=27, silent=False):
     """
     Creates a plot of the 2D elevation data in ``arr``, downsampled with a
     factor ``downsampling``.
@@ -29,24 +29,35 @@ def plot(arr, ben=None, trajectory=None, points=None, downsampling=27,
 
     ``arr``
         The terrain data.
-    ``ben``
-        An optional best guess of where Ben Nevis is (as Coords or in meters).
+    ``boundaries``
+        An optional tuple ``(xmin, xmax, ymin, ymax)`` defining the boundaries
+        (in meters) of the plotted region.
+    ``labels``
+        An optional dictionary mapping string labels to points (tuples in
+        meters or Coords objects) that will be plotted on the map (if within
+        the boundaries).
     ``trajectory``
         An optional array of shape ``(n_points, 2)`` indicating the trajectory
-        followed to get to Ben Nevis.
+        followed to get to Ben Nevis (points specified in meters).
     ``points``
         An optional array of shape ``(n_points, 2)`` indicating points on the
-        map.
+        map (points specified in meters).
+    ``scale_bar``
+        Set to ``False`` to disable the scale bar.
     ``downsampling``
         Set to any integer to set the amount of downsampling (the ratio of data
         points to pixels in either direction).
+    ``boundaries``
+        An optional
+
     ``silent``
         Set to ``True`` to stop writing a status to stdout.
 
     """
+    # Current array shape
     ny, nx = arr.shape
 
-    # Get extreme points
+    # Get extreme points (before any downsampling!)
     vmin = np.min(arr)
     vmax = np.max(arr)
     if not silent:
@@ -58,6 +69,38 @@ def plot(arr, ben=None, trajectory=None, points=None, downsampling=27,
             print(f'Downsampling with factor {downsampling}')
         arr = arr[::downsampling, ::downsampling]
         ny, nx = arr.shape
+        print(ny, nx, downsampling)
+
+    # Select region to plot, and create meters2indices method
+    d_org = d_new = np.array(nevis.dimensions())    # In meters
+    offset = np.array([0, 0])                       # In meters
+    if boundaries is not None:
+        xlo, xhi, ylo, yhi = [float(x) for x in boundaries]
+
+        # Select appropriate part of array
+        xlo = max(0, int(xlo / d_org[0] * nx))
+        ylo = max(0, int(ylo / d_org[1] * ny))
+        xhi = 1 + min(nx, int(np.ceil(xhi / d_org[0] * nx)))
+        yhi = 1 + min(ny, int(np.ceil(yhi / d_org[1] * ny)))
+        arr = arr[ylo:yhi, xlo:xhi]
+
+        # Adjust array size
+        ny, nx = arr.shape
+
+        # Set new dimensions and origin (bottom left)
+        r = nevis.spacing() * downsampling
+        d_new = np.array([nx * r, ny * r])
+        offset = np.array([xlo * r, ylo * r])
+
+    def meters2indices(x, y):
+        """ Convert meters to array indices (which equal image coordinates) """
+        x = (x - offset[0]) / d_new[0] * nx
+        y = (y - offset[1]) / d_new[1] * ny
+        try:
+            x, y = int(x), int(y)
+        except TypeError:
+            x, y = x.astype(int), y.astype(int)
+        return x, y
 
     # Plot
     if not silent:
@@ -102,33 +145,66 @@ def plot(arr, ben=None, trajectory=None, points=None, downsampling=27,
     ax.set_xlim(0, nx)
     ax.set_ylim(0, ny)
 
+    # Add scale bar
+    if scale_bar:
+        # Guess a good size
+        x = d_new[0] / 7
+        if x > 250e3:
+            x = int(round(x / 250e3) * 250e3)
+        elif x > 90e3:
+            x = int(round(x / 100e3) * 100e3)
+        elif x > 9e3:
+            x = int(round(x / 10e3) * 10e3)
+        elif x > 2e3:
+            x = int(round(x / 5e3) * 5e3)
+        elif x > 1e3:
+            x = int(round(x / 1e3) * 1e3)
+        else:
+            x = int(round(x / 100) * 100)
+        t = f'{x}m' if x < 1000 else f'{x // 1000}km'
+        x = x / d_new[0] * nx
+        y = 0.05 * ny
+        dy = 0.01 * ny
+        x0, x1 = 0.5 * x, 1.5 * x
+        ax.plot([x0, x1], [y, y], 'white', lw=1)
+        ax.plot([x0, x0], [y - dy, y + dy], 'white', lw=1)
+        ax.plot([x1, x1], [y - dy, y + dy], 'white', lw=1)
+        ax.text(0.5 * (x0 + x1), y + dy, t, color='white',
+                horizontalalignment='center', fontsize=7)
+
     # Show requested points
     if points is not None:
-        d = nevis.dimensions()
-        x = points[:, 0] / d[0]
-        y = points[:, 1] / d[1]
+        x, y = meters2indices(points[:, 0], points[:, 1])
         ax.plot(
-            x * nx, y * ny, 'x', color='#000099',
-            markeredgewidth=0.5, markersize=4, alpha=0.3)
+            x, y, 'x', color='#0000ff',
+            markeredgewidth=1, markersize=4, alpha=0.3)
 
     # Show trajectory
     if trajectory is not None:
-        d = nevis.dimensions()
-        x = trajectory[:, 0] / d[0]
-        y = trajectory[:, 1] / d[1]
+        x, y = meters2indices(trajectory[:, 0], trajectory[:, 1])
         ax.plot(
-            x * nx, y * ny, 'o-', color='#000000',
+            x, y, 'o-', color='#000000',
             lw=0.5, markeredgewidth=0.5, markersize=3)
 
-    # Show final result
-    if ben is not None:
-        if not isinstance(ben, nevis.Coords):
-            # Assume meters
-            ben = nevis.Coords(gridx=ben[0], gridy=ben[1])
-        x, y = ben.normalised
-        ax.plot(x * nx, y * ny, 'o',
-                color='#ff44ff', fillstyle='none', label='Ben Nevis')
-        ax.legend(loc='upper left')
+    # Add labelled points
+    if labels:
+        n_plotted = 0
+        for label, p in labels.items():
+            if isinstance(p, nevis.Coords):
+                p = p.grid
+            x, y = meters2indices(*p)
+            if x > 0 and x < nx and y > 0 and y < ny:
+                n_plotted += 1
+                ax.plot(x, y, 'o', fillstyle='none', label=label)
+
+        if n_plotted:
+            ax.legend(
+                loc='upper left',
+                fontsize=7,
+                framealpha=1,
+                handlelength=1.0,
+                handletextpad=0.6,
+            )
 
     return fig, ax, arr
 

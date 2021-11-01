@@ -11,7 +11,7 @@ mean, x=float, y=float
 
 # Submit a final answer: after this, no more requests can be made
 final_answer, x=float, y=float
-final_result, msg=str, img=bytes
+final_result, msg=str, img1=bytes, img2=bytes
 
 # Sent if the API is used in an unexpected manner
 error, msg=str

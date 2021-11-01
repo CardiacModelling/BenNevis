@@ -19,7 +19,7 @@ data/terr50_gagg_gb
 data/terr50_gagg_gb.*
 
 # User login tokens
-data/tokens.txt
+data/tokens
 
 # Local results
 results

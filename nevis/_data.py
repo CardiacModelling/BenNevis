@@ -399,6 +399,11 @@ def dimensions():
     return width, height
 
 
+def spacing():
+    """ Returns the spacing between any two grid points. """
+    return resolution
+
+
 Coords.ben = Coords(gridx=216666, gridy=771288)
 Coords.pub = {
     #'Ye olde trip to jerusalem': Coords(gridx=457034, gridy=339443},

@@ -14,10 +14,11 @@ __version__ = (0, 0, 1)
 # Create public API
 from ._data import (    # noqa
     ben,
+    Coords,
     dimensions,
     gb,
-    Coords,
     Hill,
+    spacing,
     pub,
 )
 from ._plot import (    # noqa

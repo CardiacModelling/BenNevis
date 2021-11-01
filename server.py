@@ -70,7 +70,7 @@ class BenNevisUser(wevis.User):
             'explore': 'q4n5nf4508gnv89y6f',
         }
 
-        path = 'data/tokens.txt'
+        path = 'data/tokens'
         if not os.path.isfile(path):
             return
         print(f'Reading user login tokens from {path}')
@@ -131,35 +131,10 @@ class BenNevisServer(wevis.Room):
         elif message.name == 'final_answer':
             connection.user.has_finished = True
 
+            # Get user coordinates
             x, y = message.get('x', 'y')
             x, y = connection.user.mystery_to_grid(x, y)
             c = nevis.Coords(gridx=x, gridy=y)
-
-            # Create figure
-            points = np.array(connection.user.points)
-            if connection.user.means:
-                trajectory = np.array(connection.user.means)
-            else:
-                trajectory = points
-                points = None
-
-            d = 3 if 'debug' in sys.argv else 27
-            fig, ax, data = nevis.plot(
-                self._d,
-                ben=c,
-                trajectory=trajectory,
-                points=points,
-                downsampling=d,
-                silent=True)
-            del(data)
-
-            # Get figure bytes
-            with tempfile.TemporaryDirectory() as d:
-                path = os.path.join(d, 'result.png')
-                fig.savefig(path)
-                del(fig)
-                with open(path, 'rb') as f:
-                    img = f.read()
 
             # Get nearest hill top
             h, d = nevis.Hill.nearest(c)
@@ -173,8 +148,48 @@ class BenNevisServer(wevis.Room):
             else:
                 msg = f'Interesting! {msg}'
 
+            # Get visited points and/or trajectory
+            points = np.array(connection.user.points)
+            if connection.user.means:
+                trajectory = np.array(connection.user.means)
+            else:
+                trajectory = points
+                points = None
+
+            # Figure 1: Full map
+            downsampling = 3 if 'debug' in sys.argv else 27
+            labels = {
+                'Ben Nevis': nevis.ben(),
+                h.name: h.coords,
+                'You': c,
+            }
+            fig, ax, data = nevis.plot(
+                self._d,
+                labels=labels,
+                trajectory=trajectory,
+                points=points,
+                downsampling=downsampling,
+                silent=True)
+            img1 = figure_bytes(fig)
+            del(fig, ax, data)
+
+            # Figure 2: Zoomed map
+            d = 20e3
+            downsampling = 1
+            boundaries = [x - d, x + d, y - d, y + d]
+            fig, ax, data = nevis.plot(
+                self._d,
+                boundaries=boundaries,
+                labels=labels,
+                trajectory=trajectory,
+                points=points,
+                downsampling=downsampling,
+                silent=True)
+            img2 = figure_bytes(fig)
+            del(fig, ax, data)
+
             # Send reply
-            connection.q('final_result', msg=msg, img=img)
+            connection.q('final_result', msg=msg, img1=img1, img2=img2)
 
         else:
             raise Exception(f'Unexpected message: {message.name}')
@@ -197,6 +212,16 @@ class BenNevisServer(wevis.Room):
 
 def version_validator(major, minor, revision):
     return True
+
+
+def figure_bytes(fig):
+    """ Convert a figure to bytes for transmission. """
+    with tempfile.TemporaryDirectory() as d:
+        path = os.path.join(d, 'result.png')
+        fig.savefig(path)
+        del(fig)
+        with open(path, 'rb') as f:
+            return f.read()
 
 
 if __name__ == '__main__':
@@ -223,8 +248,8 @@ if __name__ == '__main__':
 
     # Downsample a lot, for testing
     if 'debug' in sys.argv:
-        print('DEBUG MODE: downsampling')
         d = 9
+        print(f'DEBUG MODE: downsampling with factor {d}')
         heights = heights[::d, ::d]
 
     print('Reticulating splines...')
@@ -239,7 +264,7 @@ if __name__ == '__main__':
     f = lambda x, y: s(y, x)[0][0]
     print(f'Completed in {t.format()}')
 
-    defs = wevis.DefinitionList.from_file('definitions')
+    defs = wevis.DefinitionList.from_file('data/definitions')
     defs.instantiate()
     room = BenNevisServer(heights, f)
     server = wevis.Server(version_validator, BenNevisUser.validate, room)

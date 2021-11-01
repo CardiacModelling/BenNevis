@@ -23,7 +23,7 @@ class Score(pints.ErrorMeasure):
         return -r.get('z')
 
 
-defs = wevis.DefinitionList.from_file('definitions')
+defs = wevis.DefinitionList.from_file('data/definitions')
 defs.instantiate()
 
 client = wevis.Client((1, 0, 0), 'explore', 'q4n5nf4508gnv89y6f')

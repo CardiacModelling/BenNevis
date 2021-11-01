@@ -26,7 +26,7 @@ class Score(pints.ErrorMeasure):
         return -r.get('z')
 
 
-defs = wevis.DefinitionList.from_file('definitions')
+defs = wevis.DefinitionList.from_file('data/definitions')
 defs.instantiate()
 
 client = wevis.Client((1, 0, 0), 'test', 'ps4w69uebj2af3jcON')
@@ -53,10 +53,13 @@ try:
             client.q('mean', x=x[0], y=x[1])
 
         x0 = b.sample()
+        sigma = min(b.range()) / 6
+
         opt = pints.OptimisationController(
-            lowth, x0, boundaries=b, method=pints.CMAES)
+            lowth, x0, sigma, boundaries=b, method=pints.CMAES)
         opt.set_callback(cb)
         opt.set_max_unchanged_iterations(100, threshold = 0.01)
+        #opt.optimiser().set_population_size(10)
         x1, f1 = opt.run()
 
     print('Sending final answer...')
@@ -69,10 +72,17 @@ finally:
 # Show result
 if not os.path.isdir('results'):
     os.makedirs('results')
+
 path = 'results/client-fit-result.png'
 print(f'Writing image to {path}.')
 with open(path, 'wb') as f:
-    f.write(r.get('img'))
+    f.write(r.get('img1'))
+
+path = 'results/client-fit-result-zoom.png'
+print(f'Writing image to {path}.')
+with open(path, 'wb') as f:
+    f.write(r.get('img2'))
+
 
 print()
 print(r.get('msg'))
