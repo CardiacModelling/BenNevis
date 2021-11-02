@@ -18,6 +18,7 @@ import urllib.request
 import zipfile
 
 import numpy as np
+import scipy.interpolate
 import scipy.spatial
 import bnglonlat
 
@@ -73,7 +74,7 @@ GL = [
 ]
 
 # Cache spline (enable only when everything is finalised)
-CACHE_SPLINE = 'cache' in sys.argv
+CACHE_SPLINE = '-cache' in sys.argv
 
 
 def download(url, fname):

@@ -33,7 +33,6 @@ def store_image(client, name):
     """ Stores the image embedded in a ``message`` to ``path``. """
 
     root = 'results'
-    path = os.path.join(root, name + '.png')
     if not os.path.isdir(root):
         os.makedirs(root)
 
@@ -42,6 +41,7 @@ def store_image(client, name):
     r = client.receive_blocking('send_' + name)
 
     # Write to disk
+    path = os.path.join(root, f'client-{name}.png')
     print(f'Writing image to {path}.')
     with open(path, 'wb') as f:
         f.write(r.get('image'))

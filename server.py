@@ -202,7 +202,7 @@ class BenNevisServer(wevis.Room):
 
             # Figure 1: Full map
             h, d = user.hd
-            downsampling = 3 if 'debug' in sys.argv else 27
+            downsampling = 3 if '-debug' in sys.argv else 27
             labels = {
                 'Ben Nevis': nevis.ben(),
                 h.name: h.coords,
@@ -292,7 +292,7 @@ def version_validator(major, minor, revision):
 
 if __name__ == '__main__':
     level = logging.INFO
-    if 'verbose' in sys.argv:
+    if '-verbose' in sys.argv:
         level = logging.DEBUG
         wevis.set_logging_level(level)
     logging.basicConfig(stream=sys.stdout, level=level)
@@ -313,7 +313,7 @@ if __name__ == '__main__':
     heights = nevis.gb()
 
     # Downsample a lot, for testing
-    if 'debug' in sys.argv:
+    if '-debug' in sys.argv:
         d = 9
         print(f'DEBUG MODE: downsampling with factor {d}')
         heights = heights[::d, ::d]
