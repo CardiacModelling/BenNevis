@@ -237,7 +237,7 @@ def save_plot(path, fig, arr):
     PIL.Image.MAX_IMAGE_PIXELS = None
 
     # Open image, get file size
-    print(f'Checking size of generated image')
+    print('Checking size of generated image')
     with PIL.Image.open(path) as im:
         ix, iy = im.size
 

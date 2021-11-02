@@ -4,7 +4,6 @@ import os
 import sys
 
 import numpy as np
-import scipy.interpolate
 import wevis
 
 import nevis
@@ -289,8 +288,6 @@ class BenNevisServer(wevis.Room):
 
 def version_validator(major, minor, revision):
     return True
-
-
 
 
 if __name__ == '__main__':

@@ -83,7 +83,7 @@ try:
         opt = pints.OptimisationController(
             lowth, x0, sigma, boundaries=b, method=pints.CMAES)
         opt.set_callback(cb)
-        opt.set_max_unchanged_iterations(100, threshold = 0.01)
+        opt.set_max_unchanged_iterations(100, threshold=0.01)
         #opt.optimiser().set_population_size(10)
         x1, f1 = opt.run()
 
