@@ -13,7 +13,9 @@ import wevis
 logging.basicConfig(stream=sys.stdout)
 
 
-class Score(pints.ErrorMeasure):
+class Error(pints.ErrorMeasure):
+    """ Turn a height into an error to be minimised. """
+
     def __init__(self, client):
         self._client = client
 
@@ -21,9 +23,28 @@ class Score(pints.ErrorMeasure):
         return 2
 
     def __call__(self, p):
+        #print(f'  {p[0]:> 9.1f}, {p[1]:> 9.1f}')
         self._client.q('ask_height', x=p[0], y=p[1])
-        r = self._client.receive_blocking('tell_height')
+        r = self._client.receive_blocking('send_height')
         return -r.get('z')
+
+
+def store_image(client, name):
+    """ Stores the image embedded in a ``message`` to ``path``. """
+
+    root = 'results'
+    path = os.path.join(root, name + '.png')
+    if not os.path.isdir(root):
+        os.makedirs(root)
+
+    # Get image bytes
+    client.q('ask_' + name)
+    r = client.receive_blocking('send_' + name)
+
+    # Write to disk
+    print(f'Writing image to {path}.')
+    with open(path, 'wb') as f:
+        f.write(r.get('image'))
 
 
 defs = wevis.DefinitionList.from_file('data/definitions')
@@ -43,14 +64,18 @@ try:
     b = pints.RectangularBoundaries(lower, upper)
 
     print('Starting optimisation...')
-    lowth = Score(client)
+    lowth = Error(client)
     if 'debug' in sys.argv:
         x1 = x0 = (upper + lower) / 2
         f1 = lowth(x1)
     else:
         def cb(opt):
-            x = opt.xbest()
-            client.q('mean', x=x[0], y=x[1])
+            #TODO: We need to update PINTS to get the mean without using
+            # undocumented private properties
+            p = opt._es.result.xfavorite
+            #p = opt.xbest()
+            #print(f'{p[0]:> 9.1f}, {p[1]:> 9.1f}')
+            client.q('mean', x=p[0], y=p[1])
 
         x0 = b.sample()
         sigma = min(b.range()) / 6
@@ -65,25 +90,16 @@ try:
     print('Sending final answer...')
     client.q('final_answer', x=x1[0], y=x1[1])
     r = client.receive_blocking('final_result')
+    message = r.get('msg')
+
+    print('Obtaining result figures')
+    store_image(client, 'map_full')
+    store_image(client, 'map_zoom')
+    store_image(client, 'line_plot')
 
 finally:
     client.stop()
 
-# Show result
-if not os.path.isdir('results'):
-    os.makedirs('results')
-
-path = 'results/client-fit-result.png'
-print(f'Writing image to {path}.')
-with open(path, 'wb') as f:
-    f.write(r.get('img1'))
-
-path = 'results/client-fit-result-zoom.png'
-print(f'Writing image to {path}.')
-with open(path, 'wb') as f:
-    f.write(r.get('img2'))
-
-
 print()
-print(r.get('msg'))
+print(message)
 

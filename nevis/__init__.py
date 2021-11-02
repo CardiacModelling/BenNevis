@@ -19,10 +19,13 @@ from ._data import (    # noqa
     gb,
     Hill,
     spacing,
+    spline,
     pub,
 )
 from ._plot import (    # noqa
     plot,
+    plot_line,
+    png_bytes,
     save_plot,
 )
 from ._util import (    # noqa

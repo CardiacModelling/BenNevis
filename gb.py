@@ -32,11 +32,11 @@ if True:
 # Zoom in on an area
 boundaries = None
 downsampling = 27
-if True:
+if False:
     b = nevis.ben().grid
-    d = 50e3
+    d = 20e3
     boundaries = [b[0] - d, b[0] + d, b[1] - d, b[1] + d]
-    downsampling = 2
+    downsampling = 1
 
 # Load data
 arr = nevis.gb()

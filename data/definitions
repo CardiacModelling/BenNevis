@@ -3,15 +3,23 @@ boundaries, xlo=float, ylo=float, xhi=float, yhi=float
 
 # The main command and its response
 ask_height, x=float, y=float
-tell_height, z=float
+send_height, z=float
 
 # Methods that use multiple points per iteration can send a mean in between
 # height requests, that will be used to show progress on the map.
 mean, x=float, y=float
 
-# Submit a final answer: after this, no more requests can be made
+# Submit a final answer: after this, no more height requests can be made
 final_answer, x=float, y=float
-final_result, msg=str, img1=bytes, img2=bytes
+final_result, msg=str
+
+# Result images
+ask_map_full
+send_map_full, image=bytes
+ask_map_zoom
+send_map_zoom, image=bytes
+ask_line_plot
+send_line_plot, image=bytes
 
 # Sent if the API is used in an unexpected manner
 error, msg=str

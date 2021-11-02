@@ -11,6 +11,7 @@ Brittain, obtained from the Ordnance Survey data set ``terr50_gagg_gb``.
 #
 import csv
 import os
+import pickle
 import random
 import sys
 import urllib.request
@@ -18,8 +19,9 @@ import zipfile
 
 import numpy as np
 import scipy.spatial
-
 import bnglonlat
+
+import nevis
 
 # Get accurate longitude/lattitude, or use fallback
 try:
@@ -69,6 +71,9 @@ GL = [
     ['F', 'G', 'H', 'J', 'K'],
     ['A', 'B', 'C', 'D', 'E'],
 ]
+
+# Cache spline (enable only when everything is finalised)
+CACHE_SPLINE = 'cache' in sys.argv
 
 
 def download(url, fname):
@@ -250,6 +255,41 @@ def gb():
     return arr
 
 
+def spline(heights):
+    """
+    Create a spline interpolating over an array of heights.
+    """
+    s = None
+    cached = os.path.join(data, 'spline')
+    if CACHE_SPLINE and os.path.isfile(cached):
+        print('Unpickling spline...')
+        try:
+            with open(cached, 'rb') as f:
+                s = pickle.load(f)
+        except Exception:
+            print('Unpickling failed.')
+
+    if s is None:
+        print('Reticulating splines...')
+        ny, nx = heights.shape
+        c = 25  # Correction: Coords at lower-left, height is center of square
+        t = nevis.Timer()
+        s = scipy.interpolate.RectBivariateSpline(
+            np.linspace(0, height, ny, endpoint=False) + c,
+            np.linspace(0, width, nx, endpoint=False) + c,
+            heights)
+        print(f'Completed in {t.format()}')
+
+        if CACHE_SPLINE:
+            print('Pickling spline...')
+            t = nevis.Timer()
+            with open(cached, 'wb') as f:
+                pickle.dump(s, f)
+            print(f'Completed in {t.format()}')
+
+    return lambda x, y: s(y, x)[0][0]
+
+
 class Coords(object):
     """
     Coordinates, either normalised (so that 0, 0 is the bottom left of the grid
@@ -334,11 +374,11 @@ class Coords(object):
 
     @property
     def grid(self):
-        return self._gridx, self._gridy
+        return np.array([self._gridx, self._gridy])
 
     @property
     def normalised(self):
-        return self._normx, self._normy
+        return np.array([self._normx, self._normy])
 
     @property
     def square3(self):
@@ -547,6 +587,14 @@ class Hill(object):
     @property
     def rank(self):
         return self._rank
+
+    @property
+    def ranked(self):
+        s = str(self._rank)
+        if s[-1] in '123':
+            if not (self._rank > 10 and s[-2] == '1'):
+                return s + 'st' if s[-1] == '1' else s + 'd'
+        return s + 'th'
 
     @property
     def summit(self):

@@ -8,6 +8,9 @@ Provides plotting methods.
 # Inspired by
 # https://scipython.com/blog/processing-uk-ordnance-survey-terrain-data/
 #
+import os
+import tempfile
+
 import matplotlib.colors
 import matplotlib.figure
 import numpy as np
@@ -69,7 +72,6 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
             print(f'Downsampling with factor {downsampling}')
         arr = arr[::downsampling, ::downsampling]
         ny, nx = arr.shape
-        print(ny, nx, downsampling)
 
     # Select region to plot, and create meters2indices method
     d_org = d_new = np.array(nevis.dimensions())    # In meters
@@ -124,7 +126,11 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
         ])
 
     # Work out figure dimensions
-    dpi = 200
+    # Note: Matplotlib defaults to 100 dots per inch and 72 points per inch for
+    # font sizes and line widths. This means that increasing the dpi leads to
+    # more pixels per inch, but also to much bigger letters and thicker lines,
+    # as it assumes the physical size should stay the same when printed!
+    dpi = 100
     fw = nx / dpi
     fh = ny / dpi
     if not silent:
@@ -169,8 +175,8 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
         ax.plot([x0, x1], [y, y], 'white', lw=1)
         ax.plot([x0, x0], [y - dy, y + dy], 'white', lw=1)
         ax.plot([x1, x1], [y - dy, y + dy], 'white', lw=1)
-        ax.text(0.5 * (x0 + x1), y + dy, t, color='white',
-                horizontalalignment='center', fontsize=7)
+        ax.text(0.5 * (x0 + x1), y + 0.5 * dy, t, color='white',
+                horizontalalignment='center')
 
     # Show requested points
     if points is not None:
@@ -184,7 +190,7 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
         x, y = meters2indices(trajectory[:, 0], trajectory[:, 1])
         ax.plot(
             x, y, 'o-', color='#000000',
-            lw=0.5, markeredgewidth=0.5, markersize=3)
+            lw=0.5, markeredgewidth=0.5, markersize=4)
 
     # Add labelled points
     if labels:
@@ -195,15 +201,17 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
             x, y = meters2indices(*p)
             if x > 0 and x < nx and y > 0 and y < ny:
                 n_plotted += 1
-                ax.plot(x, y, 'o', fillstyle='none', label=label)
+                ax.plot(
+                    x, y, 'o', fillstyle='none',
+                    markersize=12, markeredgewidth=2,
+                    label=label)
 
         if n_plotted:
             ax.legend(
                 loc='upper left',
-                fontsize=7,
                 framealpha=1,
-                handlelength=1.0,
-                handletextpad=0.6,
+                handlelength=1.5,
+                handletextpad=0.9,
             )
 
     return fig, ax, arr
@@ -237,4 +245,76 @@ def save_plot(path, fig, arr):
         print('Image size OK')
     else:
         print(f'Unexpected image size: width {ix}, height {iy}')
+
+
+def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
+              padding=0.25, evaluations=200):
+    """
+    Draws a line between two points and evaluates a function along it.
+
+    Arguments:
+
+    ``f``
+        A function ``f(x, y) -> z``.
+    ``point_1``
+        The first point as a set of Coords or a numpy array in meters.
+    ``point_2``
+        The second point.
+    ``label_1``, ``label_2``
+        Optional labels for the points.
+    ``padding``
+        The amount of padding shown to the left and right of the points, as a
+        fraction of the total line length (e.g. ``padding=0.25`` extends the
+        line on either side by 25% of the distance between the two points).
+    ``evaluations``
+        The number of evaluations of ``f`` to plot.
+
+    Returns a tuple ``(fig, ax, p1, p2)`` where ``fig`` is the generated
+    figure, ``ax`` is the axes object within that figure, and ``p1`` and ``p2``
+    are the extremities of the line (points 1 and 2 plus padding) (as Coords).
+    """
+    # Points as vectors
+    if isinstance(point_1, nevis.Coords):
+        point_1 = point_1.grid
+    if isinstance(point_2, nevis.Coords):
+        point_2 = point_2.grid
+
+    # Direction vector
+    r = point_2 - point_1
+    d = np.sqrt(r[0]**2 + r[1]**2)
+
+    # Points to evaluate
+    s = np.linspace(-padding, 1 + padding, evaluations)
+    p = [point_1 + sj * r for sj in s]
+
+    # Evaluations
+    y = [f(*x) for x in p]
+
+    # Plot
+    fig = matplotlib.figure.Figure(figsize=(8, 5))
+    fig.subplots_adjust(0.1, 0.1, 0.99, 0.99)
+    ax = fig.add_subplot(1, 1, 1)
+    ax.set_xlabel('Distance (m)')
+    ax.set_ylabel('Altitude - according to our interpolation (m)')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.plot(s * d, y, color='green')
+    ax.axvline(0, color='#1f77b4', label=label_1)
+    ax.axvline(d, color='#7f7f7f', label=label_2)
+    ax.legend()
+
+    return fig, ax, nevis.Coords(*p[0]), nevis.Coords(*p[-1])
+
+
+def png_bytes(fig):
+    """
+    Converts a matplotlib figure to a ``bytes`` string containing its ``.PNG``
+    representation.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        path = os.path.join(d, 'result.png')
+        fig.savefig(path)
+        del(fig)
+        with open(path, 'rb') as f:
+            return f.read()
 

@@ -2,13 +2,16 @@
 import logging
 import os
 import sys
-import tempfile
 
 import numpy as np
 import scipy.interpolate
 import wevis
 
 import nevis
+
+
+# Maximum number of evaluations per user (per connection)
+MAX_EVALS = 100000
 
 
 class BenNevisUser(wevis.User):
@@ -21,6 +24,11 @@ class BenNevisUser(wevis.User):
 
         # Status
         self.has_finished = False
+        self.n_evals = 0
+
+        #
+        # Transformation
+        #
 
         # Rotation around center
         d = np.array(nevis.dimensions())
@@ -32,11 +40,6 @@ class BenNevisUser(wevis.User):
         # Translation: we translate x, y, z by some fixed degree
         self._translation = (np.random.random(2) - 0.5) * d
 
-        # Allow exploration by special user
-        if username == 'explore':
-            self._rotation = np.eye(2)
-            self._translation = np.zeros(2)
-
         # Boundaries
         edges = np.array([
             self.grid_to_mystery(x, y)
@@ -44,13 +47,27 @@ class BenNevisUser(wevis.User):
         ])
         self.lower = np.min(edges, axis=0)
         self.upper = np.max(edges, axis=0)
-        if username != 'explore':
-            self.lower *= 1.1 + 0.2 * np.random.random(2)
-            self.upper *= 1.1 + 0.2 * np.random.random(2)
 
-        # Requested points
+        # TODO: Use some scaling? (Equal on x, y, and z)
+
+        #
+        # Result logging
+        #
+
+        # Requested points and trajectory
         self.points = []
-        self.means = []
+        self.trajectory = []
+
+        # Final position (in meters)
+        self.c = None
+
+        # Hill and distance
+        self.hd = None
+
+        # Avoid overhead of repeated figure making
+        self.map_full_sent = False
+        self.map_zoom_sent = False
+        self.line_plot_sent = False
 
     def grid_to_mystery(self, x, y):
         """ Translate grid coordinates (meters) to mystery coordinates. """
@@ -67,7 +84,6 @@ class BenNevisUser(wevis.User):
         """ Load login tokens. """
         BenNevisUser._user_tokens = {
             'test': 'ps4w69uebj2af3jcON',
-            'explore': 'q4n5nf4508gnv89y6f',
         }
 
         path = 'data/tokens'
@@ -110,37 +126,54 @@ class BenNevisServer(wevis.Room):
         self._f = function
 
     def handle(self, connection, message):
+        user = connection.user
 
         if message.name == 'ask_height':
-            if connection.user.has_finished:
+            if user.has_finished:
+                return connection.q('error', 'Final answer already given.')
+            if user.n_evals > MAX_EVALS:
+                return connection.q(
+                    'error',
+                    'Maximum number of evaluations reached ({MAX_EVALS}).')
+
+            user.n_evals += 1
+            x, y = message.get('x', 'y')
+            x, y = user.mystery_to_grid(x, y)
+            z = self._f(x, y)
+            #print(f'query {x} {y} {z}')
+            user.points.append((x, y))
+            connection.q('send_height', z=z)
+
+        elif message.name == 'mean':
+            if user.has_finished:
                 connection.q('error', 'Final answer already given.')
                 return
 
             x, y = message.get('x', 'y')
-            x, y = connection.user.mystery_to_grid(x, y)
-            z = self._f(x, y)
-            #print(f'query {x} {y} {z}')
-            connection.user.points.append((x, y))
-            connection.q('tell_height', z=z)
-
-        elif message.name == 'mean':
-            x, y = message.get('x', 'y')
-            x, y = connection.user.mystery_to_grid(x, y)
-            connection.user.means.append((x, y))
+            x, y = user.mystery_to_grid(x, y)
+            user.trajectory.append((x, y))
 
         elif message.name == 'final_answer':
-            connection.user.has_finished = True
+            if user.has_finished:
+                return connection.q('error', 'Final answer already given.')
+            user.has_finished = True
+            t = nevis.Timer()
 
             # Get user coordinates
             x, y = message.get('x', 'y')
-            x, y = connection.user.mystery_to_grid(x, y)
-            c = nevis.Coords(gridx=x, gridy=y)
+            x, y = user.mystery_to_grid(x, y)
+            z = self._f(x, y)
+            c = user.c = nevis.Coords(gridx=x, gridy=y)
 
             # Get nearest hill top
-            h, d = nevis.Hill.nearest(c)
+            h, d = user.hd = nevis.Hill.nearest(c)
             dm = f'{round(d)}m' if d < 1000 else f'{round(d / 1000, 1)}km'
-            msg = (f'You landed at {c.opentopomap}. The nearest namedhill top'
-                   f' is "{h.name}", {dm} away: {h.photo()}.')
+            p = h.photo()
+            p = ': ' + p if p else ''
+            z = int(round(z))
+            msg = (f'You landed at an altitude of {z}m, near {c.opentopomap}.'
+                   f' You are {dm} from the nearest named hill top,'
+                   f' "{h.name}", ranked the {h.ranked} heighest in GB{p}.')
             if d < 100:
                 msg = f'Congratulations! {msg}'
             elif d < 1000:
@@ -148,48 +181,92 @@ class BenNevisServer(wevis.Room):
             else:
                 msg = f'Interesting! {msg}'
 
-            # Get visited points and/or trajectory
-            points = np.array(connection.user.points)
-            if connection.user.means:
-                trajectory = np.array(connection.user.means)
+            # Convert visited points and/or trajectory
+            user.points = np.array(user.points)
+            if user.trajectory:
+                user.trajectory = np.array(user.trajectory)
             else:
-                trajectory = points
-                points = None
+                user.trajectory = user.points
+                user.points = None
+
+            # Send reply
+            connection.q('final_result', msg=msg)
+            self.log.info(f'Final answer processed in {t.format()}')
+
+        elif message.name == 'ask_map_full':
+            if not user.has_finished:
+                return connection.q('error', 'Final answer needed first.')
+            elif user.map_full_sent:
+                return connection.q('error', 'map_full already sent')
+            user.map_full_sent = True
+            t = nevis.Timer()
 
             # Figure 1: Full map
+            h, d = user.hd
             downsampling = 3 if 'debug' in sys.argv else 27
             labels = {
                 'Ben Nevis': nevis.ben(),
                 h.name: h.coords,
-                'You': c,
+                'You': user.c,
             }
             fig, ax, data = nevis.plot(
                 self._d,
                 labels=labels,
-                trajectory=trajectory,
-                points=points,
+                trajectory=user.trajectory,
+                points=user.points,
                 downsampling=downsampling,
                 silent=True)
-            img1 = figure_bytes(fig)
-            del(fig, ax, data)
+            img = nevis.png_bytes(fig)
+            connection.q('send_map_full', image=img)
+            self.log.info(f'Full map created and sent in {t.format()}')
+
+        elif message.name == 'ask_map_zoom':
+            if not user.has_finished:
+                return connection.q('error', 'Final answer needed first.')
+            elif user.map_zoom_sent:
+                return connection.q('error', 'map_zoom already sent')
+            user.map_zoom_sent = True
+            t = nevis.Timer()
 
             # Figure 2: Zoomed map
-            d = 20e3
+            x, y = user.c.grid
+            h, d = user.hd
+            b = 20e3
+            boundaries = [x - b, x + b, y - b, y + b]
             downsampling = 1
-            boundaries = [x - d, x + d, y - d, y + d]
+            labels = {
+                'Ben Nevis': nevis.ben(),
+                h.name: h.coords,
+                'You': user.c,
+            }
             fig, ax, data = nevis.plot(
                 self._d,
                 boundaries=boundaries,
                 labels=labels,
-                trajectory=trajectory,
-                points=points,
+                trajectory=user.trajectory,
+                points=user.points,
                 downsampling=downsampling,
                 silent=True)
-            img2 = figure_bytes(fig)
-            del(fig, ax, data)
+            img = nevis.png_bytes(fig)
+            connection.q('send_map_zoom', image=img)
+            self.log.info(f'Zoom map created and sent in {t.format()}')
 
-            # Send reply
-            connection.q('final_result', msg=msg, img1=img1, img2=img2)
+        elif message.name == 'ask_line_plot':
+            if not user.has_finished:
+                return connection.q('error', 'Final answer needed first.')
+            elif user.line_plot_sent:
+                return connection.q('error', 'line_plot already sent')
+            user.line_plot_sent = True
+            t = nevis.Timer()
+
+            # Figure 3: Line from known top to you
+            c = user.c
+            h, d = user.hd
+            fig, ax, p1, p2 = nevis.plot_line(
+                self._f, user.c, h.coords, 'You', h.name)
+            img = nevis.png_bytes(fig)
+            connection.q('send_line_plot', image=img)
+            self.log.info(f'Line plot created and sent in {t.format()}')
 
         else:
             raise Exception(f'Unexpected message: {message.name}')
@@ -214,14 +291,6 @@ def version_validator(major, minor, revision):
     return True
 
 
-def figure_bytes(fig):
-    """ Convert a figure to bytes for transmission. """
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, 'result.png')
-        fig.savefig(path)
-        del(fig)
-        with open(path, 'rb') as f:
-            return f.read()
 
 
 if __name__ == '__main__':
@@ -252,17 +321,7 @@ if __name__ == '__main__':
         print(f'DEBUG MODE: downsampling with factor {d}')
         heights = heights[::d, ::d]
 
-    print('Reticulating splines...')
-    ny, nx = heights.shape
-    w, h = nevis.dimensions()
-    c = 25  # Correction: Coords at lower-left, height is center of square
-    t = nevis.Timer()
-    s = scipy.interpolate.RectBivariateSpline(
-        np.linspace(0, h, ny, endpoint=False) + 25,
-        np.linspace(0, w, nx, endpoint=False) + 25,
-        heights)
-    f = lambda x, y: s(y, x)[0][0]
-    print(f'Completed in {t.format()}')
+    f = nevis.spline(heights)
 
     defs = wevis.DefinitionList.from_file('data/definitions')
     defs.instantiate()
