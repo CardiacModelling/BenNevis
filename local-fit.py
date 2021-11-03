@@ -17,7 +17,6 @@ print('        /\/   /\  /  \    ')
 print('     /\/  \  /  \/    \   ')
 print('    /      \/          \  ')
 print('')
-print('Use -cache to run on a cached spline')
 
 # Load height data
 heights = nevis.gb()

@@ -73,9 +73,6 @@ GL = [
     ['A', 'B', 'C', 'D', 'E'],
 ]
 
-# Cache spline (enable only when everything is finalised)
-CACHE_SPLINE = '-cache' in sys.argv
-
 
 def download(url, fname):
     """
@@ -262,7 +259,8 @@ def spline(heights):
     """
     s = None
     cached = os.path.join(data, 'spline')
-    if CACHE_SPLINE and os.path.isfile(cached):
+    use_cache = '-debug' not in sys.argv
+    if use_cache and os.path.isfile(cached):
         print('Unpickling spline...')
         try:
             with open(cached, 'rb') as f:
@@ -281,7 +279,7 @@ def spline(heights):
             heights)
         print(f'Completed in {t.format()}')
 
-        if CACHE_SPLINE:
+        if use_cache:
             print('Pickling spline...')
             t = nevis.Timer()
             with open(cached, 'wb') as f:

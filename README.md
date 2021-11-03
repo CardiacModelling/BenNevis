@@ -11,6 +11,8 @@ When first run, this script will download the data from the OS (about 160MB) and
 
 ## Usage
 
+### First run: plot a map of GB
+
 After downloading, run `gb.py` to download and unpack the data and test that all went well by plotting a map of great brittain.
 (Don't worry, it'll be a lot faster the 2nd time.)
 
@@ -19,10 +21,18 @@ An example with ``downsampling=32`` is shown below.
 
 ![Downscaled map of GB](gb-small.png)
 
-If this works, you can
+### Messing around on your local machine
 
-- Start a server with `server.py`
-- Start a client, e.g. to run a fit, with `client-fit.py`
+Next, you can start `local-fit.py` to run a fit.
+Results will be stored in the `results` directory.
+This directory will also contain some other files, such as an `.npy` file storing a [cached](https://numpy.org/doc/stable/reference/generated/numpy.load.html) numpy representation of the downloaded terrain data, and a file `spline` that stores a [cached](https://docs.python.org/3/library/pickle.html) spline.
+
+### Setting up a client/server structure
+
+You can also start a server by running `server.py`, and then connect a client with `client.py`.
+This _should_ allow us to run a server on a machine with enough RAM and let e.g. students connect to request heights.
+Each client needs a username and a `token'; these are stored in data/tokens.
+Eventually, we'll set up a separate repo for downloading the client code.
 
 ## Data set
 
@@ -50,9 +60,10 @@ and the distance between any two data points is given as `cellsize`.
 In the Terrain 50 data set, the cellsize is always 50 (giving it its name).
 There is a more accurate Terrain 5 set that costs money.
 
-According to wikiepedia, the approximate coordinates for Ben Nevis are 216600, 771200 (which is in the NN17 square).
+According to wikipedia, the approximate coordinates for Ben Nevis are 216600, 771200 (which is in the NN17 square).
 
-An easy way to find places on the grid is with https://britishnationalgrid.uk
+An easy way to find places on the grid is with [https://britishnationalgrid.uk].
+Another nice map with BNG coordinates is [https://explore.osmaps.com], and a great map without BNG coordinates can be found at 
 
 ### The sea
 
@@ -69,4 +80,33 @@ These are defined, it seems, by [WGS 84](https://en.wikipedia.org/wiki/World_Geo
 Transforming from national grid coordinates to longitude and lattitude is hard, and the Ordnance Survey have released a thing called [OSTN15](https://www.ordnancesurvey.co.uk/business-government/tools-support/os-net/for-developers) to do this.
 Although this still seems to result in x, y coordinates, not degrees.
 Luckily, somebody's [made a tool for it](https://github.com/urschrei/convertbng).
+Unfortunately, some people have issues installing this, so that we rely on a [less accurate fallback](https://github.com/MichaelClerx/bnglonlat) for the time being.
+If you can, please manually install `convertbng` too (BenNevis will try using this first, before switching to `bnglonglat`).
+
+### Spline interpolation
+
+To get heights for any random point, we create a scipy [RectBiVariateSpline])https://docs.scipy.org/doc/scipy/reference/reference/generated/scipy.interpolate.RectBivariateSpline.html) on the data.
+This takes some time (~30 seconds on a fast machine) and uses considerable memory (~3GB).
+
+## Tiny API docs
+
+Proper API will be added if this goes public.
+For now, there are only a handful of public objects:
+
+- data utilities (see `_data.py` for details):
+  - `ben` returns grid coordinates (`Coords`) for Ben Nevis
+  - `Coords` represents grid coordinates and can convert to various forms
+  - `dimensions` returns the physical dimensions (in meters) of the GB height data
+  - `gb` loads and returns the heights data for GB
+  - `Hill` represents a hill from the hills database
+  - `pub` returns grid coordinates for a random pub, selected from a very short list
+  - `spacing` returns the physical distance (in meters) between grid points
+  - `spline` returns a spline defined over the GB height data
+- plotting utilities (see `_plot.py` for details)
+  - `plot` creates a plot of a map, with optional labels etc.
+  - `plot_line` creates a plot of the height profile between two points
+  - `png_bytes` turns a matplotlib figure into a `bytes` string
+  - `save_plot` stores a plot and checks its size (only for paranoid people)
+- others (see `_util.py` for details)
+  - `Timer` times and formats intervals
 
