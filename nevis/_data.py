@@ -340,36 +340,116 @@ class Coords(object):
 
         # Get letters and remaining x y
         if self._square is None:
-            # Get first letter
-            x, y = self._gridx + 1000e3, self._gridy + 500e3
+            # Lower-left of "V" (the bottom-left major letter) is 1000km to the
+            # left of the origins of the grid (SV) and 500km below it.
+            x, y = self._gridx + 1000000, self._gridy + 500000
 
-            a, b = int(x // 500e3), int(x // 500e3)
+            # Get first letter
+            a, b = int(y // 500000), int(x // 500000)
             try:
                 if a < 0 or b < 0:
                     raise KeyError
                 name = GL[a][b]
-            except KeyError:
-                self._square = False
-            else:
+
                 # Get second letter
-                x, y = x % 500e3, y % 500e3
-                a, b = int(x // 100e3), int(y // 100e3)
+                x, y = x % 500000, y % 500000
+                a, b = int(y // 100000), int(x // 100000)
                 name += GL[a][b]
 
                 # Get numbers
-                x, y = x % 100e3, y % 100e3
+                x, y = x % 100000, y % 100000
                 x, y = int(x), int(y)
 
                 # Make string
-                self._square = name, str(x), str(y)
+                self._square = name, f'{x:0>5}', f'{y:0>5}'
+            except KeyError:
+                self._square = False
 
         # Make string
-        try:
-            name, x, y = self._square
-        except TypeError:
+        if self._square is False:
             return 'Off the grid'
 
+        name, x, y = self._square
         return name + x[:n] + y[:n]
+
+    @staticmethod
+    def from_square(square):
+        """
+        Creates coordinates corresponding to the lower-left corner of a grid
+        square indicated by letters and numbers, e.g. ``NN166712`` or
+        ``NN 166 712``.
+        """
+        return Coords.from_square_with_size(square)[0]
+
+    @staticmethod
+    def from_square_with_size(square):
+        """
+        Like :meth:`from_square` but returns a tuple ``(coords, size)`` where
+        ``size`` is the length of the square's sides.
+        """
+        code = square.strip().upper()
+        if len(code) < 1:
+            raise ValueError(
+                'Invalid BNG grid reference: must be at least 1 letter')
+
+        def find(letter):
+            """
+            Find lower-left coordinates. Big squares are 500km, small 100km.
+            """
+            for i, row in enumerate(GL):
+                if letter >= row[0] and letter != 'I':
+                    return i, row.index(letter)
+            raise ValueError(
+                f'Invalid BNG grid letter "{letter}" in code "{square}".')
+
+        # Origin of letter system is V, BNG starts at S
+        x, y = -1000000, -500000
+
+        # Process letters
+        i, j = find(code[0])
+        x, y = x + 500000 * j, y + 500000 * i
+        if len(code) == 1:
+            return Coords(x, y), 500000
+
+        i, j = find(code[1])
+        x, y = x + 100000 * j, y + 100000 * i
+        if len(code) == 2:
+            return Coords(x, y), 100000
+
+        # Check numbers
+        numbers = code[2:].split(maxsplit=1)
+        if len(numbers) == 1:
+            numbers = numbers[0]
+            n = len(numbers)
+            if n % 2 == 1:
+                raise ValueError(
+                    f'Invalid BNG grid code: {square} numbers must have same'
+                    ' number of digits.')
+            n = n // 2
+            numbers = (numbers[:n], numbers[n:])
+        else:
+            n = max(len(numbers[0]), len(numbers[1]))
+
+        try:
+            a, b = int(numbers[0]), int(numbers[1])
+        except ValueError:
+            raise ValueError(
+                f'Invalid BNG grid code: {square} numbers must be integers.')
+        if a < 0 or b < 0:
+            raise ValueError(
+                f'Invalid BNG grid code: {square} numbers must be positive.')
+
+        # Calculate square size
+        m = 10**(5 - n)
+
+        # Final grid coordinates
+        x, y = x + a * m, y + b * m
+
+        # Pretty much always, we'll want to round
+        if m >= 1:
+            x, y = int(x), int(y)
+
+        return Coords(x, y), m
 
     @property
     def grid(self):
