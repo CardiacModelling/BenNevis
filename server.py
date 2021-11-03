@@ -208,7 +208,7 @@ class BenNevisServer(wevis.Room):
                 h.name: h.coords,
                 'You': user.c,
             }
-            fig, ax, data = nevis.plot(
+            fig, ax, data, _ = nevis.plot(
                 self._d,
                 labels=labels,
                 trajectory=user.trajectory,
@@ -238,7 +238,7 @@ class BenNevisServer(wevis.Room):
                 h.name: h.coords,
                 'You': user.c,
             }
-            fig, ax, data = nevis.plot(
+            fig, ax, data, _ = nevis.plot(
                 self._d,
                 boundaries=boundaries,
                 labels=labels,
@@ -296,15 +296,7 @@ if __name__ == '__main__':
         level = logging.DEBUG
         wevis.set_logging_level(level)
     logging.basicConfig(stream=sys.stdout, level=level)
-
-    print('                           ')
-    print(' Starting Ben      Nevis   ')
-    print('               /\    Server')
-    print('            /\/--\         ')
-    print('           /---   \/\      ')
-    print('        /\/   /\  /  \     ')
-    print('     /\/  \  /  \/    \    ')
-    print('    /      \/          \   ')
+    nevis.howdy()
 
     # Load user tokens
     BenNevisUser.load_user_tokens()

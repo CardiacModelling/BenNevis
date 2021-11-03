@@ -41,7 +41,7 @@ def store_image(client, name):
     r = client.receive_blocking('send_' + name)
 
     # Write to disk
-    path = os.path.join(root, f'client-{name}.png')
+    path = os.path.join(root, f'client-{name.replace("_", "-")}.png')
     print(f'Writing image to {path}.')
     with open(path, 'wb') as f:
         f.write(r.get('image'))
@@ -85,7 +85,9 @@ try:
         opt.set_callback(cb)
         opt.set_max_unchanged_iterations(100, threshold=0.01)
         #opt.optimiser().set_population_size(10)
-        x1, f1 = opt.run()
+        #x1, f1 = opt.run()
+        opt.run()
+        x1 = opt.optimiser()._es.result.xfavorite
 
     print('Sending final answer...')
     client.q('final_answer', x=x1[0], y=x1[1])

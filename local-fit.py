@@ -7,18 +7,8 @@ import pints
 
 import nevis
 
-
-print('                          ')
-print(' Starting Ben      Nevis  ')
-print('               /\    Local')
-print('            /\/--\        ')
-print('           /---   \/\     ')
-print('        /\/   /\  /  \    ')
-print('     /\/  \  /  \/    \   ')
-print('    /      \/          \  ')
-print('')
-
 # Load height data
+nevis.howdy('Local')
 heights = nevis.gb()
 
 # Downsample a lot, for testing
@@ -78,7 +68,10 @@ opt = pints.OptimisationController(
 )
 opt.set_callback(cb)
 opt.set_max_unchanged_iterations(100, threshold=0.01)
-x1, f1 = opt.run()
+#x1, f1 = opt.run()
+opt.run()
+x1 = opt.optimiser()._es.result.xfavorite
+
 
 # Get final result and some comparison points
 x, y = x1
@@ -105,7 +98,7 @@ labels = {
     h.name: h.coords,
     'You': c,
 }
-fig, ax, data = nevis.plot(
+fig, ax, data, g = nevis.plot(
     heights,
     labels=labels,
     trajectory=trajectory,
@@ -128,7 +121,7 @@ labels = {
     h.name: h.coords,
     'You': c,
 }
-fig, ax, data = nevis.plot(
+fig, ax, data, g = nevis.plot(
     heights,
     boundaries=boundaries,
     labels=labels,

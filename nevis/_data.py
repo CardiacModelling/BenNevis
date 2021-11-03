@@ -101,10 +101,10 @@ def download(url, fname):
         f.write(raw_data)
 
 
-def extract(basename, arr, resolution, print_to_screen=True):
+def extract(basename, heights, resolution, print_to_screen=True):
     """
     Extracts data from an "ASCII Grid and GML (Grid)" file at ``basename``.zip,
-    and extracts the data into numpy array ``arr``.
+    and extracts the data into numpy array ``heights``.
 
     The resolution of each file inside the zip must be the same, and must be
     specified as ``resolution``.
@@ -129,7 +129,7 @@ def extract(basename, arr, resolution, print_to_screen=True):
                     partial_path = str(path)[len(fname) + 1:]
 
                     # Read .asc data from embedded zip file
-                    read_nested_zip(f, partial_path, arr, resolution)
+                    read_nested_zip(f, partial_path, heights, resolution)
 
                     if print_to_screen:
                         i += 1
@@ -140,7 +140,7 @@ def extract(basename, arr, resolution, print_to_screen=True):
         print('\nDone')
 
 
-def read_nested_zip(parent, name, arr, resolution):
+def read_nested_zip(parent, name, heights, resolution):
     """
     Opens a zip-in-a-zip and reads any ``.asc`` files inside it.
     """
@@ -155,13 +155,13 @@ def read_nested_zip(parent, name, arr, resolution):
                     # Read internal asc
                     with f.open(path, 'r') as asc:
                         try:
-                            read_asc(asc, arr, resolution)
+                            read_asc(asc, heights, resolution)
                         except Exception as e:
                             raise Exception(
                                 f'Error reading {path} in {name}: {str(e)}.')
 
 
-def read_asc(handle, arr, resolution):
+def read_asc(handle, heights, resolution):
     """
     Extracts data from a handle pointing to an already opened ``.asc`` file.
     """
@@ -209,7 +209,7 @@ def read_asc(handle, arr, resolution):
     assert data.shape == (nrows, ncols)
 
     # Insert data into vector
-    arr[yll:yll + nrows, xll:xll + ncols] = data[::-1, :]
+    heights[yll:yll + nrows, xll:xll + ncols] = data[::-1, :]
 
 
 def gb():
@@ -228,29 +228,29 @@ def gb():
     cached = os.path.join(data, terrain_file + '.npy')
     if os.path.isfile(cached):
         print('Loading terrain data...')
-        arr = np.load(cached)
+        heights = np.load(cached)
     else:
         # Ensure zip is downloaded
         download(url, f'{terrain_file}.zip')
 
         # Create empty array
-        arr = np.empty((ny, nx), dtype=np.float32)
-        arr.fill(np.nan)
+        heights = np.empty((ny, nx), dtype=np.float32)
+        heights.fill(np.nan)
 
         # Fill it up
-        extract(terrain_file, arr, resolution)
+        extract(terrain_file, heights, resolution)
 
         print(f'Saving to {cached}...')
-        np.save(cached, arr)
+        np.save(cached, heights)
 
     # Replace missing values by far-below-sea level
-    arr[np.isnan(arr)] = -10
+    heights[np.isnan(heights)] = -10
 
     # Flatten the sea
     sea = -5
-    arr[arr < sea] = sea
+    heights[heights < sea] = sea
 
-    return arr
+    return heights
 
 
 def spline(heights):

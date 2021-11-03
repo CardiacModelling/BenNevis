@@ -7,7 +7,8 @@ import sys
 
 import nevis
 
-# Get normalised coordinates
+# Get normalised coordinates, if given
+nevis.howdy('Version')
 if len(sys.argv) == 3:
     labels = {'User point': nevis.Coords(normx=sys.argv[1], normy=sys.argv[2])}
 else:
@@ -15,7 +16,7 @@ else:
 
 # Show some points
 points = trajectory = None
-if True:
+if False:
     import numpy as np
     ben = nevis.ben()
     points = []
@@ -39,12 +40,12 @@ if False:
     downsampling = 1
 
 # Load data
-arr = nevis.gb()
+heights = nevis.gb()
 
 # Create plot
 # downsampling=27 makes the plot fit on my screen at 100% zoom.
-fig, ax, arr = nevis.plot(
-    arr,
+fig, ax, heights, g = nevis.plot(
+    heights,
     boundaries=boundaries,
     labels=labels,
     trajectory=trajectory,
@@ -54,5 +55,5 @@ fig, ax, arr = nevis.plot(
 # Save plot, and check resulting image dimensions
 if not os.path.isdir('results'):
     os.makedirs('results')
-nevis.save_plot('results/gb.png', fig, arr)
+nevis.save_plot('results/gb.png', fig, heights)
 

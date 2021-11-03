@@ -18,19 +18,20 @@ import numpy as np
 import nevis
 
 
-def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
+def plot(heights, boundaries=None, labels=None, trajectory=None, points=None,
          scale_bar=True, downsampling=27, silent=False):
     """
-    Creates a plot of the 2D elevation data in ``arr``, downsampled with a
+    Creates a plot of the 2D elevation data in ``heights``, downsampled with a
     factor ``downsampling``.
 
-    Returns a tuple ``(fig, ax, arr)`` where ``fig`` is the created figure,
-    ``ax`` is the axes the image is plotted on, and ``arr`` is the downsampled
-    numpy array.
+    Returns a tuple ``(fig, ax, heights, g)`` where ``fig`` is the created
+    figure, ``ax`` is the axes the image is plotted on, and ``heights`` is the
+    downsampled numpy array. The final entry ``g`` is a function that converts
+    coordinates in meters to coordinates on the map axes.
 
     Arguments:
 
-    ``arr``
+    ``heights``
         The terrain data.
     ``boundaries``
         An optional tuple ``(xmin, xmax, ymin, ymax)`` defining the boundaries
@@ -50,19 +51,16 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
     ``downsampling``
         Set to any integer to set the amount of downsampling (the ratio of data
         points to pixels in either direction).
-    ``boundaries``
-        An optional
-
     ``silent``
         Set to ``True`` to stop writing a status to stdout.
 
     """
     # Current array shape
-    ny, nx = arr.shape
+    ny, nx = heights.shape
 
     # Get extreme points (before any downsampling!)
-    vmin = np.min(arr)
-    vmax = np.max(arr)
+    vmin = np.min(heights)
+    vmax = np.max(heights)
     if not silent:
         print(f'Highest point: {vmax}')
 
@@ -70,8 +68,8 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
     if downsampling > 1:
         if not silent:
             print(f'Downsampling with factor {downsampling}')
-        arr = arr[::downsampling, ::downsampling]
-        ny, nx = arr.shape
+        heights = heights[::downsampling, ::downsampling]
+        ny, nx = heights.shape
 
     # Select region to plot, and create meters2indices method
     d_org = d_new = np.array(nevis.dimensions())    # In meters
@@ -84,10 +82,10 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
         ylo = max(0, int(ylo / d_org[1] * ny))
         xhi = 1 + min(nx, int(np.ceil(xhi / d_org[0] * nx)))
         yhi = 1 + min(ny, int(np.ceil(yhi / d_org[1] * ny)))
-        arr = arr[ylo:yhi, xlo:xhi]
+        heights = heights[ylo:yhi, xlo:xhi]
 
         # Adjust array size
-        ny, nx = arr.shape
+        ny, nx = heights.shape
 
         # Set new dimensions and origin (bottom left)
         r = nevis.spacing() * downsampling
@@ -142,7 +140,7 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
     ax = fig.add_subplot(1, 1, 1)
     ax.set_axis_off()
     ax.imshow(
-        arr,
+        heights,
         origin='lower',
         cmap=cmap,
         vmin=vmin,
@@ -154,14 +152,14 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
     # Add scale bar
     if scale_bar:
         # Guess a good size
-        x = d_new[0] / 7
+        x = d_new[0] / 5
         if x > 250e3:
             x = int(round(x / 250e3) * 250e3)
         elif x > 90e3:
             x = int(round(x / 100e3) * 100e3)
         elif x > 9e3:
             x = int(round(x / 10e3) * 10e3)
-        elif x > 2e3:
+        elif x > 4.5e3:
             x = int(round(x / 5e3) * 5e3)
         elif x > 1e3:
             x = int(round(x / 1e3) * 1e3)
@@ -170,7 +168,7 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
         t = f'{x}m' if x < 1000 else f'{x // 1000}km'
         x = x / d_new[0] * nx
         y = 0.05 * ny
-        dy = 0.01 * ny
+        dy = 0.015 * ny
         x0, x1 = 0.5 * x, 1.5 * x
         ax.plot([x0, x1], [y, y], 'white', lw=1)
         ax.plot([x0, x0], [y - dy, y + dy], 'white', lw=1)
@@ -195,16 +193,15 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
     # Add labelled points
     if labels:
         n_plotted = 0
+        kwargs = {'fillstyle': 'none', 'markersize': 12}
         for label, p in labels.items():
             if isinstance(p, nevis.Coords):
                 p = p.grid
             x, y = meters2indices(*p)
             if x > 0 and x < nx and y > 0 and y < ny:
                 n_plotted += 1
-                ax.plot(
-                    x, y, 'o', fillstyle='none',
-                    markersize=12, markeredgewidth=2,
-                    label=label)
+                ax.plot(x, y, 'wo', markeredgewidth=3, **kwargs)
+                ax.plot(x, y, 'o', markeredgewidth=2, label=label, **kwargs)
 
         if n_plotted:
             ax.legend(
@@ -214,13 +211,13 @@ def plot(arr, boundaries=None, labels=None, trajectory=None, points=None,
                 handletextpad=0.9,
             )
 
-    return fig, ax, arr
+    return fig, ax, heights, meters2indices
 
 
-def save_plot(path, fig, arr):
+def save_plot(path, fig, heights):
     """
     Stores the given figure using ``fig.savefig(path)``, but will also check
-    that the image dimensions (in pixels) equal the size of ``arr``.
+    that the image dimensions (in pixels) equal the size of ``heights``.
 
     This check requires ``PIL`` to be installed (will silently fail if not).
     """
@@ -241,14 +238,15 @@ def save_plot(path, fig, arr):
     with PIL.Image.open(path) as im:
         ix, iy = im.size
 
-    if (iy, ix) == arr.shape:
+    if (iy, ix) == heights.shape:
         print('Image size OK')
     else:
-        print(f'Unexpected image size: width {ix}, height {iy}')
+        print(f'Unexpected image size: width {ix}, height {iy}, expecting'
+              f' {heights.shape}.')
 
 
 def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
-              padding=0.25, evaluations=200):
+              padding=0.25, evaluations=400):
     """
     Draws a line between two points and evaluates a function along it.
 
