@@ -32,6 +32,10 @@ labels = {}
 #
 # Squares of about 15x15km look OK
 #
+# The grid is in 50m by 50m squares, and the height should be taken in the
+# middle, so to draw horizontal, vertical, or diagonal lines that align with
+# the grid, each number should end in 25 or 75.
+#
 
 #
 # Ben Nevis 216666 771288
@@ -151,10 +155,10 @@ for ii, sq in enumerate(squares):
                 j0 = x0 // r
                 ts = r * (np.arange(0, 1 + abs(i1 - i0)) - abs(y0 // r - i0))
                 s = 1 if i1 > i0 else -1
-                ys = [f(x0, y0 + t * s) for t in ts]
+                #ys = [f(x0, y0 + t * s) for t in ts]
                 ss = np.arange(i0, i1 + s, s)
                 ss = [heights[s, j0] for s in ss]
-                ax.plot(ts, ys, 'x', label='Spline values')
+                #ax.plot(ts, ys, 'x', label='Spline values')
                 ax.plot(ts, ss, '+', label='Data values')
                 ax.legend()
                 label += ', Vertical'
@@ -165,10 +169,10 @@ for ii, sq in enumerate(squares):
                 j1 = q1.grid[0] // r
                 ts = r * (np.arange(0, 1 + abs(j1 - j0)) - abs(x0 // r - j0))
                 s = 1 if j1 > j0 else -1
-                ys = [f(x0 + t * s, y0) for t in ts]
+                #ys = [f(x0 + t * s, y0) for t in ts]
                 ss = np.arange(j0, j1 + s, s)
                 ss = [heights[i0, s] for s in ss]
-                ax.plot(ts, ys, 'x', label='Spline values')
+                #ax.plot(ts, ys, 'x', label='Spline values')
                 ax.plot(ts, ss, '+', label='Data values')
                 ax.legend()
                 label += ', Horizontal'
@@ -183,13 +187,13 @@ for ii, sq in enumerate(squares):
                 i1 = y1 // r + pad * sy
                 tjs = r * (np.arange(0, 1 + abs(j1 - j0)) - abs(x0 // r - j0))
                 tis = r * (np.arange(0, 1 + abs(i1 - i0)) - abs(y0 // r - i0))
-                sp = [
-                    f(x0 + ti * sx, y0 + tj * sy) for ti, tj in zip(tis, tjs)]
+                #sp = [
+                #    f(x0 + ti * sx, y0 + tj * sy) for ti, tj in zip(tis, tjs)]
                 sx = np.arange(j0, j1 + sx, sx)
                 sy = np.arange(i0, i1 + sy, sy)
                 ss = [heights[j, i] for j, i in zip(sy, sx)]
                 ts = np.sqrt(tjs**2 + tis**2) * np.sign(tjs)
-                ax.plot(ts, sp, 'x', label='Spline values')
+                #ax.plot(ts, sp, 'x', label='Spline values')
                 ax.plot(ts, ss, '+', label='Data values')
                 ax.legend()
                 label += ', Diagonal'
