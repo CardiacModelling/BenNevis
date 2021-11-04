@@ -75,19 +75,38 @@ try:
             p = opt._es.result.xfavorite
             #p = opt.xbest()
             #print(f'{p[0]:> 9.1f}, {p[1]:> 9.1f}')
-            client.q('mean', x=p[0], y=p[1])
+
 
         x0 = b.sample()[0]
         sigma0 = min(b.range()) / 6
 
-        opt = pints.OptimisationController(
-            lowth, x0, sigma0, boundaries=b, method=pints.CMAES)
-        opt.set_callback(cb)
-        opt.set_max_unchanged_iterations(100, threshold=0.01)
-        #opt.optimiser().set_population_size(10)
-        #x1, f1 = opt.run()
-        opt.run()
-        x1 = opt.optimiser()._es.result.xfavorite
+        opt = pints.CMAES(x0, sigma0, boundaries=b)
+        opt.set_population_size(50)
+        xs = [x0]
+        t = pints.Timer()
+        for i in range(1000):
+            ps = opt.ask()
+            client.q('ask_heights', xs=ps[:, 0], ys=ps[:, 1])
+            r = client.receive_blocking('send_heights')
+            z = np.asarray(r.get('zs'))
+            opt.tell(-z)
+
+            # Get current best estimate
+            x = np.array(opt._es.result.xfavorite)
+            xs.append(x)
+            client.q('mean', x=x[0], y=x[1])
+
+            # Check change in best estimate
+            ds = np.array(xs[-1]) - np.array(xs[-21:-1])
+            ds = np.sum(ds**2, axis=1)
+            if np.max(ds) < 1e-3:
+                print(f'Stopping after {i} iterations.')
+                break
+
+            if i % 20 == 0:
+                print(i, t.format(), np.max(z))
+        x1 = opt._es.result.xfavorite
+
 
     print('Sending final answer...')
     client.q('final_answer', x=x1[0], y=x1[1])

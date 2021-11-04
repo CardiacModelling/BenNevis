@@ -130,7 +130,7 @@ class BenNevisServer(wevis.Room):
         if message.name == 'ask_height':
             if user.has_finished:
                 return connection.q('error', 'Final answer already given.')
-            if user.n_evals > MAX_EVALS:
+            if user.n_evals >= MAX_EVALS:
                 return connection.q(
                     'error',
                     'Maximum number of evaluations reached ({MAX_EVALS}).')
@@ -142,6 +142,27 @@ class BenNevisServer(wevis.Room):
             #print(f'query {x} {y} {z}')
             user.points.append((x, y))
             connection.q('send_height', z=z)
+
+        if message.name == 'ask_heights':
+            if user.has_finished:
+                return connection.q('error', 'Final answer already given.')
+
+            xs, ys = message.get('xs', 'ys')
+            n = len(xs)
+            if len(ys) != n:
+                return connection.q('X and Y array must have same length.')
+            if user.n_evals + n > MAX_EVALS:
+                return connection.q(
+                    'error',
+                    'Maximum number of evaluations reached ({MAX_EVALS}).')
+            user.n_evals += n
+
+            zs = [None] * n
+            for i, x, y in zip(range(n), xs, ys):
+                x, y = user.mystery_to_grid(x, y)
+                z = zs[i] = self._f(x, y)
+                user.points.append((x, y))
+            connection.q('send_heights', zs=zs)
 
         elif message.name == 'mean':
             if user.has_finished:
