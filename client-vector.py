@@ -81,7 +81,7 @@ try:
         sigma0 = min(b.range()) / 6
 
         opt = pints.CMAES(x0, sigma0, boundaries=b)
-        opt.set_population_size(50)
+        #opt.set_population_size(50)
         xs = [x0]
         t = pints.Timer()
         for i in range(1000):

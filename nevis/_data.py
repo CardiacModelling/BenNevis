@@ -10,6 +10,7 @@ Brittain, obtained from the Ordnance Survey data set ``terr50_gagg_gb``.
 # https://scipython.com/blog/processing-uk-ordnance-survey-terrain-data/
 #
 import csv
+import io
 import os
 import pickle
 import random
@@ -117,24 +118,22 @@ def extract(basename, heights, resolution, print_to_screen=True):
         i = 0
 
     with zipfile.ZipFile(fname, 'r') as f:
-        # Browse to inner directory, and then data directory
-        dir_data = zipfile.Path(f).joinpath(basename).joinpath('data')
 
-        # Collect paths to inner zip files
-        for dir_square in dir_data.iterdir():
-            for path in dir_square.iterdir():
-                if os.path.splitext(path.name)[1] == '.zip':
-                    # Remove zipfile name from path. No idea if there isn't an
-                    # easier way to do this...
-                    partial_path = str(path)[len(fname) + 1:]
+        # Find inner zip files
+        zips = []
+        for name in f.namelist():
+            if os.path.splitext(name)[1] == '.zip':
+                zips.append(name)
+        zips.sort()
 
-                    # Read .asc data from embedded zip file
-                    read_nested_zip(f, partial_path, heights, resolution)
+        # Read nested zip files
+        for name in zips:
+            read_nested_zip(f, name, heights, resolution)
 
-                    if print_to_screen:
-                        i += 1
-                        print('.', end=(None if i % 79 == 0 else ''))
-                        sys.stdout.flush()
+            if print_to_screen:
+                i += 1
+                print('.', end=(None if i % 79 == 0 else ''))
+                sys.stdout.flush()
 
     if print_to_screen:
         print('\nDone')
@@ -145,8 +144,9 @@ def read_nested_zip(parent, name, heights, resolution):
     Opens a zip-in-a-zip and reads any ``.asc`` files inside it.
     """
     # Open zip-in-a-zip
-    with parent.open(name) as raw:
-        with zipfile.ZipFile(raw) as f:
+    with parent.open(name, 'r') as par:
+        nested = io.BytesIO(par.read())
+        with zipfile.ZipFile(nested) as f:
 
             # Scan for asc files
             for path in f.namelist():
@@ -249,6 +249,8 @@ def gb():
     # Flatten the sea
     sea = -5
     heights[heights < sea] = sea
+
+    # Progressively deepen the sea
 
     return heights
 
@@ -605,7 +607,7 @@ class Hill(object):
             coords.append([row[indices[0]], row[indices[1]]])
 
         # Construct tree
-        Hill._tree = scipy.spatial.KDTree(np.array(coords))
+        Hill._tree = scipy.spatial.KDTree(np.array(coords, dtype=np.float32))
 
     @staticmethod
     def by_id(hill_id):

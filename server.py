@@ -143,7 +143,7 @@ class BenNevisServer(wevis.Room):
             user.points.append((x, y))
             connection.q('send_height', z=z)
 
-        if message.name == 'ask_heights':
+        elif message.name == 'ask_heights':
             if user.has_finished:
                 return connection.q('error', 'Final answer already given.')
 
