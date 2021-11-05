@@ -108,7 +108,7 @@ class BenNevisUser(wevis.User):
                 f'Unable to parse user tokens from {path}') from e
 
     @staticmethod
-    def validate(username, password, salt):
+    def validate(username, password, salt, version):
         """ Validate a username. """
         if BenNevisUser._user_tokens is None:
             BenNevisUser._load_user_tokens()
@@ -119,9 +119,8 @@ class BenNevisUser(wevis.User):
 
 
 class BenNevisServer(wevis.Room):
-    def __init__(self, heights, function):
+    def __init__(self, function):
         super().__init__()
-        self._d = heights
         self._f = function
 
     def handle(self, connection, message):
@@ -230,7 +229,6 @@ class BenNevisServer(wevis.Room):
                 'You': user.c,
             }
             fig, ax, data, _ = nevis.plot(
-                self._d,
                 labels=labels,
                 trajectory=user.trajectory,
                 points=user.points,
@@ -260,7 +258,6 @@ class BenNevisServer(wevis.Room):
                 'You': user.c,
             }
             fig, ax, data, _ = nevis.plot(
-                self._d,
                 boundaries=boundaries,
                 labels=labels,
                 trajectory=user.trajectory,
@@ -307,34 +304,23 @@ class BenNevisServer(wevis.Room):
         pass
 
 
-def version_validator(major, minor, revision):
-    return True
-
-
 if __name__ == '__main__':
     level = logging.INFO
     if '-verbose' in sys.argv:
         level = logging.DEBUG
         wevis.set_logging_level(level)
     logging.basicConfig(stream=sys.stdout, level=level)
+
+    # Load data and spline
     nevis.howdy()
+    nevis.gb(9 if '-debug' in sys.argv else 1)
+    f = nevis.spline()
 
     # Load user tokens
     BenNevisUser.load_user_tokens()
 
-    # Load data
-    heights = nevis.gb()
-
-    # Downsample a lot, for testing
-    if '-debug' in sys.argv:
-        d = 9
-        print(f'DEBUG MODE: downsampling with factor {d}')
-        heights = heights[::d, ::d]
-
-    f = nevis.spline(heights)
-
     defs = wevis.DefinitionList.from_file('data/definitions')
     defs.instantiate()
-    room = BenNevisServer(heights, f)
-    server = wevis.Server(version_validator, BenNevisUser.validate, room)
+    room = BenNevisServer(f)
+    server = wevis.Server(BenNevisUser.validate, room)
     server.launch()

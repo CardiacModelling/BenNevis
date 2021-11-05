@@ -40,12 +40,11 @@ if False:
     downsampling = 1
 
 # Load data
-heights = nevis.gb()
+nevis.gb()
 
 # Create plot
 # downsampling=27 makes the plot fit on my screen at 100% zoom.
 fig, ax, heights, g = nevis.plot(
-    heights,
     boundaries=boundaries,
     labels=labels,
     trajectory=trajectory,

@@ -18,7 +18,7 @@ r = nevis.spacing()
 r2 = r // 2             # Height is taken at center of grid square
 
 # Create (or load cached) spline
-f = nevis.spline(heights)
+f = nevis.spline()
 
 #
 # Squares and objects to draw on the maps
@@ -94,7 +94,6 @@ if not os.path.isdir(root):
 #
 cmap = matplotlib.cm.get_cmap('tab10', 10)
 fig, ax, data, g = nevis.plot(
-    heights,
     downsampling=27,
     silent=True)
 for ii, sq in enumerate(squares):
@@ -117,7 +116,6 @@ fig.savefig(path)
 for ii, sq in enumerate(squares):
     square, lines = sq
     fig, ax, data, g = nevis.plot(
-        heights,
         boundaries=square,
         labels=labels,
         downsampling=1,

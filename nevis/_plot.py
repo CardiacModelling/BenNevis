@@ -18,8 +18,8 @@ import numpy as np
 import nevis
 
 
-def plot(heights, boundaries=None, labels=None, trajectory=None, points=None,
-         scale_bar=True, downsampling=27, silent=False):
+def plot(boundaries=None, labels=None, trajectory=None, points=None,
+         scale_bar=True, grid=False, downsampling=27, silent=False):
     """
     Creates a plot of the 2D elevation data in ``heights``, downsampled with a
     factor ``downsampling``.
@@ -31,8 +31,6 @@ def plot(heights, boundaries=None, labels=None, trajectory=None, points=None,
 
     Arguments:
 
-    ``heights``
-        The terrain data.
     ``boundaries``
         An optional tuple ``(xmin, xmax, ymin, ymax)`` defining the boundaries
         (in meters) of the plotted region.
@@ -56,6 +54,7 @@ def plot(heights, boundaries=None, labels=None, trajectory=None, points=None,
 
     """
     # Current array shape
+    heights = nevis.gb()
     ny, nx = heights.shape
 
     # Get extreme points (before any downsampling!)

@@ -7,18 +7,10 @@ import pints
 
 import nevis
 
-# Load height data
+# Load height data, create (or load cached) spline
 nevis.howdy('Local')
-heights = nevis.gb()
-
-# Downsample a lot, for testing
-if '-debug' in sys.argv:
-    d = 9
-    print(f'DEBUG MODE: downsampling with factor {d}')
-    heights = heights[::d, ::d]
-
-# Create (or load cached) spline
-f = nevis.spline(heights)
+nevis.gb(9 if '-debug' in sys.argv else None)
+f = nevis.spline()
 
 # Visited points, and means per iteration
 points = []
@@ -99,7 +91,6 @@ labels = {
     'You': c,
 }
 fig, ax, data, g = nevis.plot(
-    heights,
     labels=labels,
     trajectory=trajectory,
     points=points,
@@ -122,7 +113,6 @@ labels = {
     'You': c,
 }
 fig, ax, data, g = nevis.plot(
-    heights,
     boundaries=boundaries,
     labels=labels,
     trajectory=trajectory,

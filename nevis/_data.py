@@ -74,6 +74,9 @@ GL = [
     ['A', 'B', 'C', 'D', 'E'],
 ]
 
+# Cached heights
+_heights = None
+
 
 def download(url, fname):
     """
@@ -212,7 +215,7 @@ def read_asc(handle, heights, resolution):
     heights[yll:yll + nrows, xll:xll + ncols] = data[::-1, :]
 
 
-def gb():
+def gb(downsampling=None):
     """
     Returns an array of elevation data for Great Brittain, with height in
     meters and grid points spaced 50m apart.
@@ -222,43 +225,60 @@ def gb():
     If required, the data is first downloaded (approx 160MB) and unpacked
     (approx 1.5GB).
     """
+    global _heights
+    if _heights is None:
 
-    # Read data or cached data
-    nx, ny = width // resolution, height // resolution
-    cached = os.path.join(data, terrain_file + '.npy')
-    if os.path.isfile(cached):
-        print('Loading terrain data...')
-        heights = np.load(cached)
-    else:
-        # Ensure zip is downloaded
-        download(url, f'{terrain_file}.zip')
+        # Read data or cached data
+        nx, ny = width // resolution, height // resolution
+        cached = os.path.join(data, terrain_file + '.npy')
+        if os.path.isfile(cached):
+            print('Loading terrain data...')
+            heights = np.load(cached)
+        else:
+            # Ensure zip is downloaded
+            download(url, f'{terrain_file}.zip')
 
-        # Create empty array
-        heights = np.empty((ny, nx), dtype=np.float32)
-        heights.fill(np.nan)
+            # Create empty array
+            heights = np.empty((ny, nx), dtype=np.float32)
+            heights.fill(np.nan)
 
-        # Fill it up
-        extract(terrain_file, heights, resolution)
+            # Fill it up
+            extract(terrain_file, heights, resolution)
 
-        print(f'Saving to {cached}...')
-        np.save(cached, heights)
+            print(f'Saving to {cached}...')
+            np.save(cached, heights)
 
-    # Replace missing values by far-below-sea level
-    heights[np.isnan(heights)] = -10
+        # Replace missing values by far-below-sea level
+        heights[np.isnan(heights)] = -10
 
-    # Flatten the sea
-    sea = -5
-    heights[heights < sea] = sea
+        # Flatten the sea
+        sea = -5
+        heights[heights < sea] = sea
 
-    # Progressively deepen the sea
+        # Store
+        _heights = heights
 
-    return heights
+        # Downsample a lot, for testing
+        if downsampling is not None and downsampling > 1:
+            print(f'Downsampling with factor {downsampling}')
+            heights = heights[::downsampling, ::downsampling]
+
+    # Check downsampling isn't requested with other ratio
+    # (Requests that don't specify are fine!)
+    if downsampling is not None and downsampling > 1:
+        if downsampling != nevis._heights_downsampling:
+            raise ValueError(
+                'Data already downsampled with {nevis._heights_downsampling}.')
+
+    return _heights
 
 
-def spline(heights):
+def spline():
     """
-    Create a spline interpolating over an array of heights.
+    Create a spline interpolating over the array of heights.
     """
+    heights = gb()
+
     s = None
     cached = os.path.join(data, 'spline')
     use_cache = '-debug' not in sys.argv
