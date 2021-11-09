@@ -608,7 +608,8 @@ def spline():
         s = scipy.interpolate.RectBivariateSpline(
             np.linspace(0, height, ny, endpoint=False) + c,
             np.linspace(0, width, nx, endpoint=False) + c,
-            heights)
+            heights,
+        )
         print(f'Completed in {t.format()}')
 
         if use_cache:
