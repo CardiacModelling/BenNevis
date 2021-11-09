@@ -89,7 +89,6 @@ class BenNevisUser(wevis.User):
         if not os.path.isfile(path):
             return
         print(f'Reading user login tokens from {path}')
-        tokens = {}
         try:
             with open(path, 'r') as f:
                 for line in f:
@@ -100,7 +99,7 @@ class BenNevisUser(wevis.User):
                     user = user.strip()
                     token = token.strip()
                     if user and token:
-                        tokens[user] = token
+                        BenNevisUser._user_tokens[user] = token
                     else:
                         raise ValueError('Empty user and/or token')
         except Exception as e:
@@ -323,5 +322,8 @@ if __name__ == '__main__':
     defs = wevis.DefinitionList.from_file('data/definitions')
     defs.instantiate()
     room = BenNevisServer(f)
-    server = wevis.Server(BenNevisUser.validate, room)
+    server = wevis.Server(
+        BenNevisUser.validate,
+        room,
+    )
     server.launch()

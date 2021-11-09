@@ -50,7 +50,11 @@ def store_image(client, name):
 defs = wevis.DefinitionList.from_file('data/definitions')
 defs.instantiate()
 
-client = wevis.Client('test', 'ps4w69uebj2af3jcON', '1.0.0')
+client = wevis.Client(
+    'test',
+    'ps4w69uebj2af3jcON',
+    '1.0.0',
+)
 
 try:
     print('Starting client...')
