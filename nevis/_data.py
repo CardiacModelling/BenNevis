@@ -473,7 +473,8 @@ def add_sea_slope(heights, s, print_to_screen=True):
 
     j = 0
     for i in range(ny * nx):
-        if i % 10 == 0:
+        div = 1 if len(x) > 300000 else (10 if len(x) > 50000 else 100)
+        if i % div == 0:
             j += 1
             print('.', end=(None if j % 79 == 0 else ''))
             sys.stdout.flush()
@@ -510,40 +511,9 @@ def add_sea_slope(heights, s, print_to_screen=True):
         yr, xr = yr[ok], xr[ok]
         heights[yr, xr] = heights[yr, xr - 1] - h
 
-        # Move down-left
-        ok = np.nonzero((y > 0) & (x > 0))
-        ydl, xdl = y[ok] - 1, x[ok] - 1
-        ok = np.nonzero((heights[ydl, xdl] == s)
-                        | (heights[ydl, xdl] < heights[ydl + 1, xdl + 1] - h))
-        ydl, xdl = ydl[ok], xdl[ok]
-        heights[ydl, xdl] = heights[ydl + 1, xdl + 1] - h
+        y = np.concatenate((yd, yu, yl, yr))
+        x = np.concatenate((xd, xu, xl, xr))
 
-        # Move down-right
-        ok = np.nonzero((y > 0) & (x < nx - 1))
-        ydr, xdr = y[ok] - 1, x[ok] + 1
-        ok = np.nonzero((heights[ydr, xdr] == s)
-                        | (heights[ydr, xdr] < heights[ydr + 1, xdr - 1] - h))
-        ydr, xdr = ydr[ok], xdr[ok]
-        heights[ydr, xdr] = heights[ydr + 1, xdr - 1] - h
-
-        # Move up-left
-        ok = np.nonzero((y < ny - 1) & (x > 0))
-        yul, xul = y[ok] + 1, x[ok] - 1
-        ok = np.nonzero((heights[yul, xul] == s)
-                        | (heights[yul, xul] < heights[yul - 1, xul + 1] - h))
-        yul, xul = yul[ok], xul[ok]
-        heights[yul, xul] = heights[yul - 1, xul + 1] - h
-
-        # Move up-right
-        ok = np.nonzero((y < ny - 1) & (x < nx - 1))
-        yur, xur = y[ok] + 1, x[ok] + 1
-        ok = np.nonzero((heights[yur, xur] == s)
-                        | (heights[yur, xur] < heights[yur - 1, xur - 1] - h))
-        yur, xur = yur[ok], xur[ok]
-        heights[yur, xur] = heights[yur - 1, xur - 1] - h
-
-        y = np.concatenate((yd, yu, yl, yr, ydl, ydr, yul, yur))
-        x = np.concatenate((xd, xu, xl, xr, xdl, xdr, xul, xur))
         if len(y) == 0:
             break
 
@@ -1071,4 +1041,54 @@ def squares():
             i1 = 0
             i0 += 1
     return squares
+
+
+def linear_interpolant():
+    """
+    Returns a linear interpolant on the height data.
+
+    Like :meth:`spline()`, this returns a function accepting and x and a y
+    argument, that returns a scalar height.
+    The height for each grid point ``(i, j)`` is assumed to be in the center of
+    the square from ``(i, j)`` to ``(i + 1, j + 1)``.
+    """
+    if _heights is None:
+        gb()
+    return linear_interpolation
+
+
+def linear_interpolation(x, y):
+    """
+    Returns a linear interpolation of the data at grid coordinates ``(x, y)``
+    (in meters).
+    """
+    ny, nx = _heights.shape
+    x, y = x / resolution - 0.5, y / resolution - 0.5
+
+    # Find nearest grid points x1 (left), x2 (right), y1 (bottom), y2 (top).
+
+    # Nearest grid points
+    # When outside the grid, we use the _two_ points nearest the edge
+    # (resulting in an extrapolation)
+    x1 = np.minimum(nx - 2, np.maximum(0, int(x)))
+    y1 = np.minimum(ny - 2, np.maximum(0, int(y)))
+    x2 = x1 + 1
+    y2 = y1 + 1
+
+    # Heights at nearest grid points (subscripts are x_y)
+    h11 = _heights[y1, x1]
+    h12 = _heights[y2, x1]
+    h21 = _heights[y1, x2]
+    h22 = _heights[y2, x2]
+
+    # We omit the 1 / (x2 - x1) and 1 / (y2 - y1) terms as these are always 1
+    # in the normal (interpolating) case.
+    # When extrapolating, we get e.g. x1 == x2, so that (x2 - x) == (x1 - x)
+
+    # X-direction interpolation on both y values
+    f1 = np.where(h11 == h21, h11, (x2 - x) * h11 + (x - x1) * h21)
+    f2 = np.where(h12 == h22, h12, (x2 - x) * h12 + (x - x1) * h22)
+
+    # Final result
+    return np.where(f1 == f2, f1, (y2 - y) * f1 + (y - y1) * f2)
 

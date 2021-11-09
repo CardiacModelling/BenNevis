@@ -189,7 +189,7 @@ class BenNevisServer(wevis.Room):
             dm = f'{round(d)}m' if d < 1000 else f'{round(d / 1000, 1)}km'
             p = h.photo()
             p = ': ' + p if p else ''
-            z = int(round(z))
+            z = int(round(float(z)))
             msg = (f'You landed at an altitude of {z}m, near {c.opentopomap}.'
                    f' You are {dm} from the nearest named hill top,'
                    f' "{h.name}", ranked the {h.ranked} heighest in GB{p}.')
@@ -314,7 +314,8 @@ if __name__ == '__main__':
     # Load data and spline
     nevis.howdy()
     nevis.gb(9 if '-debug' in sys.argv else 1)
-    f = nevis.spline()
+    #f = nevis.spline()
+    f = nevis.linear_interpolant()
 
     # Load user tokens
     BenNevisUser.load_user_tokens()

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+#
+# Creates various plots to check the interpolation
+#
 import os
 import sys
 
@@ -11,14 +14,21 @@ import nevis
 sys.argv = [x for x in sys.argv if x != '-debug']
 
 # Load height data
-nevis.howdy('Spline check')
+nevis.howdy('Interpolation')
 heights = nevis.gb()
 ny, nx = heights.shape
 r = nevis.spacing()
 r2 = r // 2             # Height is taken at center of grid square
 
-# Create (or load cached) spline
-f = nevis.spline()
+# Get interpolant
+if 'spline' in sys.argv:
+    # Create (or load cached) spline
+    f = nevis.spline()
+    name = 'spline'
+else:
+    # Get linear interpolant
+    f = nevis.linear_interpolant()
+    name = 'linear'
 
 #
 # Squares and objects to draw on the maps
@@ -51,7 +61,6 @@ lines.append([216675, 216675, 773275, 771275])
 lines.append([214675, 216675, 771275, 771275])
 # Diagonal, from valley up to peak
 lines.append([216675 - 1400, 216675, 771275 - 1400, 771275])
-
 squares.append((square, lines))
 
 #
@@ -137,6 +146,32 @@ lines.append([160025, 169975, 645025, 645025])
 lines.append([165025, 165025, 659975, 640025])
 squares.append((square, lines))
 
+#
+# End of the world
+#
+square = [-8000, 8000, -8000, 8000]
+lines = []
+lines.append([-1025, 1025, 5525, 5525])
+lines.append([5525, 5525, -1025, 1025])
+lines.append([-1025, 1025, -1025, 1025])
+squares.append((square, lines))
+
+w, h = nx * r, ny * r
+square = [w - 8000, w + 8000, -8000, 8000]
+lines = []
+lines.append([w - 1025, w + 1025, 5525, 5525])
+lines.append([w - 5525, w - 5525, -1025, 1025])
+lines.append([w - 1025, w + 1025, 1025, -1025])
+squares.append((square, lines))
+
+w, h = nx * r, ny * r
+square = [w - 8000, w + 8000, h - 8000, h + 8000]
+lines = []
+lines.append([w - 1025, w + 1025, h - 5525, h - 5525])
+lines.append([w - 5525, w - 5525, h - 1025, h + 1025])
+lines.append([w - 1025, w + 1025, h - 1025, h + 1025])
+squares.append((square, lines))
+
 
 #
 # Ensure results directory exists
@@ -161,7 +196,7 @@ for ii, sq in enumerate(squares):
     ax.plot(a, b, 'w', lw=3)
     ax.plot(a, b, label=f'Square {ii + 1}')
 ax.legend(loc='upper left')
-path = os.path.join(root, 'spline-check-0-map-full.png')
+path = os.path.join(root, f'{name}-check-0-map-full.png')
 print()
 print(f'Saving figure to {path}.')
 fig.savefig(path)
@@ -191,7 +226,7 @@ for ii, sq in enumerate(squares):
     if lines:
         ax.legend(loc='lower right')
 
-    path = os.path.join(root, f'spline-check-{ii + 1}-0-map.png')
+    path = os.path.join(root, f'{name}-check-{ii + 1}-0-map.png')
     print(f'Saving figure to {path}.')
     fig.savefig(path)
 
@@ -215,13 +250,13 @@ for ii, sq in enumerate(squares):
                 j0 = x0 // r
                 ts = r * (np.arange(0, 1 + abs(i1 - i0)) - abs(y0 // r - i0))
                 s = 1 if i1 > i0 else -1
-                #ys = [f(x0, y0 + t * s) for t in ts]
                 ss = np.arange(i0, i1 + s, s)
-                ss = [heights[s, j0] for s in ss]
-                #ax.plot(ts, ys, 'x', label='Spline values')
-                ax.plot(ts, ss, '+', label='Data values')
-                if np.min(ss) <= 0 and np.max(ss) >= 0:
-                    ax.axhline(0, color='k', lw=0.5, alpha=0.2)
+                ok = np.nonzero((ss >= 0) & (ss < ny))
+                if np.any(ok):
+                    ss = [heights[s, j0] for s in ss[ok]]
+                    ax.plot(ts[ok], ss, '+', label='Data values')
+                    if np.min(ss) <= 0 and np.max(ss) >= 0:
+                        ax.axhline(0, color='k', lw=0.5, alpha=0.2)
                 ax.legend(loc='center left')
                 label += ', Vertical'
 
@@ -231,17 +266,17 @@ for ii, sq in enumerate(squares):
                 j1 = q1.grid[0] // r
                 ts = r * (np.arange(0, 1 + abs(j1 - j0)) - abs(x0 // r - j0))
                 s = 1 if j1 > j0 else -1
-                #ys = [f(x0 + t * s, y0) for t in ts]
                 ss = np.arange(j0, j1 + s, s)
-                ss = [heights[i0, s] for s in ss]
-                #ax.plot(ts, ys, 'x', label='Spline values')
-                ax.plot(ts, ss, '+', label='Data values')
-                if np.min(ss) <= 0 and np.max(ss) >= 0:
-                    ax.axhline(0, color='k', lw=0.5, alpha=0.4)
+                ok = np.nonzero((ss >= 0) & (ss < nx))
+                if np.any(ok):
+                    ss = np.array([heights[i0, s] for s in ss[ok]])
+                    ax.plot(ts[ok], ss, '+', label='Data values')
+                    if np.min(ss) <= 0 and np.max(ss) >= 0:
+                        ax.axhline(0, color='k', lw=0.5, alpha=0.4)
                 ax.legend(loc='center left')
                 label += ', Horizontal'
 
-            elif (y1 - y0 == x1 - x0):
+            elif (abs(y1 - y0) == abs(x1 - x0)):
                 pad = min(abs(q0.grid[0] - x0), abs(q0.grid[1] - y0)) // r
                 sx = 1 if x1 > x0 else -1
                 sy = 1 if y1 > y0 else -1
@@ -251,22 +286,21 @@ for ii, sq in enumerate(squares):
                 i1 = y1 // r + pad * sy
                 tjs = r * (np.arange(0, 1 + abs(j1 - j0)) - abs(x0 // r - j0))
                 tis = r * (np.arange(0, 1 + abs(i1 - i0)) - abs(y0 // r - i0))
-                #sp = [
-                #    f(x0 + ti * sx, y0 + tj * sy) for ti, tj in zip(tis, tjs)]
                 sx = np.arange(j0, j1 + sx, sx)
                 sy = np.arange(i0, i1 + sy, sy)
-                ss = [heights[j, i] for j, i in zip(sy, sx)]
-                ts = np.sqrt(tjs**2 + tis**2) * np.sign(tjs)
-                #ax.plot(ts, sp, 'x', label='Spline values')
-                ax.plot(ts, ss, '+', label='Data values')
-                if np.min(ss) <= 0 and np.max(ss) >= 0:
-                    ax.axhline(0, color='k', lw=0.5, alpha=0.2)
+                ok = np.nonzero((sx >= 0) & (sy >= 0) & (sx < nx) & (sy < ny))
+                if np.any(ok):
+                    ss = [heights[j, i] for j, i in zip(sy[ok], sx[ok])]
+                    ts = np.sqrt(tjs**2 + tis**2) * np.sign(tjs)
+                    ax.plot(ts[ok], ss, '+', label='Data values')
+                    if np.min(ss) <= 0 and np.max(ss) >= 0:
+                        ax.axhline(0, color='k', lw=0.5, alpha=0.2)
                 ax.legend(loc='center left')
                 label += ', Diagonal'
 
             fig.text(0.99, 0.97, label, ha='right', va='center')
 
-        path = os.path.join(root, f'spline-check-{ii + 1}-{jj + 1}-line.png')
+        path = os.path.join(root, f'{name}-check-{ii + 1}-{jj + 1}-line.png')
         print(f'Saving figure to {path}.')
         fig.savefig(path)
 

@@ -20,10 +20,11 @@ from ._data import (    # noqa
     fen,
     gb,
     Hill,
+    linear_interpolant,
+    pub,
     spacing,
     spline,
     squares,
-    pub,
 )
 from ._plot import (    # noqa
     plot,

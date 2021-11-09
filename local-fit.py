@@ -10,7 +10,8 @@ import nevis
 # Load height data, create (or load cached) spline
 nevis.howdy('Local')
 nevis.gb(9 if '-debug' in sys.argv else None)
-f = nevis.spline()
+#f = nevis.spline()
+f = nevis.linear_interpolant()
 
 # Visited points, and means per iteration
 points = []

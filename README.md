@@ -97,11 +97,14 @@ For now, there are only a handful of public objects:
   - `ben` returns grid coordinates (`Coords`) for Ben Nevis
   - `Coords` represents grid coordinates and can convert to various forms
   - `dimensions` returns the physical dimensions (in meters) of the GB height data
+  - `fen` returns grid coordinates for Holme Fen, the lowest point (inland)
   - `gb` loads and returns the heights data for GB
   - `Hill` represents a hill from the hills database
+  - `linear_interpolant` returns a linear interpolant over the GB height data
   - `pub` returns grid coordinates for a random pub, selected from a very short list
   - `spacing` returns the physical distance (in meters) between grid points
   - `spline` returns a spline defined over the GB height data
+  - `squares` returns the coordinates of major BNG squares
 - plotting utilities (see `_plot.py` for details)
   - `plot` creates a plot of a map, with optional labels etc.
   - `plot_line` creates a plot of the height profile between two points
