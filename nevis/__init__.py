@@ -17,10 +17,12 @@ from ._data import (    # noqa
     ben,
     Coords,
     dimensions,
+    fen,
     gb,
     Hill,
     spacing,
     spline,
+    squares,
     pub,
 )
 from ._plot import (    # noqa

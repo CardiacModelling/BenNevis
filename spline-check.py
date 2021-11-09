@@ -81,6 +81,59 @@ squares.append((square, lines))
 # Teignmouth beach SX 9441 7301
 #
 
+#
+# Sea issue NT68: Coast near North Berwick 359353, 682985
+#
+square = [357000, 371000, 676500, 690500]
+lines = []
+# Through square, horizontally
+lines.append([360025, 369975, 684025, 684025])
+# Through square, vertically
+lines.append([365025, 365025, 680025, 689975])
+squares.append((square, lines))
+# Through below-sea level "land" in square below
+lines.append([362825, 362825, 677925, 680525])
+squares.append((square, lines))
+
+#
+# Sea issues NR35,24,34,44,33: Islay, south-east coast
+#
+labels['Laphroig'] = nevis.Coords(138639, 645208)
+labels['Lagavulin'] = nevis.Coords(140190, 645660)
+labels['Ardbeg'] = nevis.Coords(141478, 646419)
+square = [119000, 151000, 629000, 661000]
+lines = []
+# Horizontally through squares
+lines.append([130025, 132975, 652025, 652025])
+lines.append([129025, 129025, 649975, 647025])
+lines.append([120025, 149975, 645025, 645025])
+lines.append([130025, 139975, 635025, 635025])
+squares.append((square, lines))
+
+#
+# Sea issues: NR56,57: Jura south-east coast
+#
+labels['Jura distillery'] = nevis.Coords(152809, 666895)
+square = [144000, 166000, 659000, 681000]
+lines = []
+# Horizontally through squares
+lines.append([156025, 159975, 672025, 672025])
+lines.append([153025, 159975, 666025, 666025])
+lines.append([150025, 159975, 661525, 661525])
+squares.append((square, lines))
+
+#
+# Sea issues: NR65,64,74,76,75: North-west Kintyre and south-west Knapdale
+#
+square = [159000, 181000, 639000, 671000]
+lines = []
+# Through NR76
+lines.append([170025, 179975, 661525, 661525])
+lines.append([171225, 171225, 669975, 660025])
+lines.append([160025, 175025, 655025, 655025])
+lines.append([160025, 169975, 645025, 645025])
+lines.append([165025, 165025, 659975, 640025])
+squares.append((square, lines))
 
 #
 # Ensure results directory exists
@@ -119,18 +172,21 @@ for ii, sq in enumerate(squares):
         boundaries=square,
         labels=labels,
         downsampling=1,
+        small_grid=True,
         silent=True)
     for jj, line in enumerate(lines):
         x0, x1, y0, y1 = line
         a0, b0 = g(x0, y0)
         a1, b1 = g(x1, y1)
         c, d = 0.1 * (a1 - a0), 0.1 * (b1 - b0)
-        ax.plot([a0, a1], [b0, b1], label=f'line {jj + 1}')
+        color = cmap(jj) if jj < 2 else cmap(1 + jj)
+        ax.plot([a0, a1], [b0, b1], label=f'line {jj + 1}', color=color)
         ax.plot(
             [a1, a1 - c + d, a1 - c - d, a1],
             [b1, b1 - d - c, b1 - d + c, b1],
-            color=cmap(1 + jj))
-    ax.legend()
+            color=color)
+    if lines:
+        ax.legend(loc='lower right')
 
     path = os.path.join(root, f'spline-check-{ii + 1}-0-map.png')
     print(f'Saving figure to {path}.')
@@ -140,7 +196,10 @@ for ii, sq in enumerate(squares):
     for jj, line in enumerate(lines):
         x0, x1, y0, y1 = line
         p0, p1 = nevis.Coords(x0, y0), nevis.Coords(x1, y1)
-        fig, ax, q0, q1 = nevis.plot_line(f, p0, p1)
+        fig, ax, q0, q1 = nevis.plot_line(f, p0, p1, figsize=(14, 10))
+        ax.minorticks_on()
+        ax.grid(which='major')
+        ax.grid(which='minor', color='#eeeeee')
         label = f'Line {jj + 1}'
 
         # Compare with grid points
@@ -158,7 +217,9 @@ for ii, sq in enumerate(squares):
                 ss = [heights[s, j0] for s in ss]
                 #ax.plot(ts, ys, 'x', label='Spline values')
                 ax.plot(ts, ss, '+', label='Data values')
-                ax.legend()
+                if np.min(ss) <= 0 and np.max(ss) >= 0:
+                    ax.axhline(0, color='k', lw=0.5, alpha=0.2)
+                ax.legend(loc='center left')
                 label += ', Vertical'
 
             elif y0 == y1:
@@ -172,7 +233,9 @@ for ii, sq in enumerate(squares):
                 ss = [heights[i0, s] for s in ss]
                 #ax.plot(ts, ys, 'x', label='Spline values')
                 ax.plot(ts, ss, '+', label='Data values')
-                ax.legend()
+                if np.min(ss) <= 0 and np.max(ss) >= 0:
+                    ax.axhline(0, color='k', lw=0.5, alpha=0.4)
+                ax.legend(loc='center left')
                 label += ', Horizontal'
 
             elif (y1 - y0 == x1 - x0):
@@ -193,7 +256,9 @@ for ii, sq in enumerate(squares):
                 ts = np.sqrt(tjs**2 + tis**2) * np.sign(tjs)
                 #ax.plot(ts, sp, 'x', label='Spline values')
                 ax.plot(ts, ss, '+', label='Data values')
-                ax.legend()
+                if np.min(ss) <= 0 and np.max(ss) >= 0:
+                    ax.axhline(0, color='k', lw=0.5, alpha=0.2)
+                ax.legend(loc='center left')
                 label += ', Diagonal'
 
             fig.text(0.99, 0.97, label, ha='right', va='center')

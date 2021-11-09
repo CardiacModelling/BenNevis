@@ -19,7 +19,8 @@ import nevis
 
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
-         scale_bar=True, grid=False, downsampling=27, silent=False):
+         scale_bar=True, big_grid=False, small_grid=False, downsampling=27,
+         silent=False):
     """
     Creates a plot of the 2D elevation data in ``heights``, downsampled with a
     factor ``downsampling``.
@@ -46,6 +47,10 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         map (points specified in meters).
     ``scale_bar``
         Set to ``False`` to disable the scale bar.
+    ``big_grid``
+        Show the 2-letter grid squares (100km by 100km).
+    ``small_grid``
+        Show the 2-letter 2-number grid squares (10km by 10km)
     ``downsampling``
         Set to any integer to set the amount of downsampling (the ratio of data
         points to pixels in either direction).
@@ -61,6 +66,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     vmin = np.min(heights)
     vmax = np.max(heights)
     if not silent:
+        print(f'Lowest point: {vmin}')
         print(f'Highest point: {vmax}')
 
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).
@@ -111,16 +117,16 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     # g = lambda x: f(x * vmax)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
         'soundofmusic', [
-            (0, '#78b0d1'),             # Deep sea blue
-            (f(-4.0), '#78b0d1'),       # Deep sea blue
-            (f(-3), '#0f561e'),         # Dark green
+            (0, '#4872d3'),             # Deep sea blue
+            (f(-0.1), '#68b2e3'),       # Shallow sea blue
+            (f(0.0), '#0f561e'),        # Dark green
             (f(10), '#1a8b33'),         # Nicer green
             (f(100), '#11aa15'),        # Glorious green
             (f(300), '#e8e374'),        # Yellow at ~1000ft
             (f(610), '#8a4121'),        # Brownish at ~2000ft
             (f(915), '#999999'),        # Grey at ~3000ft
             (1, 'white'),
-        ])
+        ], N=1024)
 
     # Work out figure dimensions
     # Note: Matplotlib defaults to 100 dots per inch and 72 points per inch for
@@ -144,9 +150,43 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         cmap=cmap,
         vmin=vmin,
         vmax=vmax,
+        interpolation='none',
     )
     ax.set_xlim(0, nx)
     ax.set_ylim(0, ny)
+
+    # Add grid
+    if small_grid:
+        for sq, x0, y0 in nevis.squares():
+            for j in range(10):
+                for i in range(10):
+                    x, y = x0 + j * 10000, y0 + i * 10000
+                    if y == 0 and x > 0:
+                        q, r = meters2indices(x, y)
+                        if q > 2 and q < nx - 2:
+                            ax.axvline(q, color='w', lw=0.5)
+                    elif x == 0 and y > 0:
+                        q, r = meters2indices(x, y)
+                        if r > 2 and r < ny - 2:
+                            ax.axhline(r, color='w', lw=0.5)
+                    q, r = meters2indices(x + 5000, y + 5000)
+                    if q > 20 and q < nx - 20 and r > 10 and r < ny - 10:
+                        ax.text(q, r, sq + str(j) + str(i), color='w',
+                                ha='center', va='center', fontsize=10)
+    elif big_grid:
+        for sq, x, y in nevis.squares():
+            if y == 0 and x > 0:
+                q, r = meters2indices(x, y)
+                if q > 0 and q < nx:
+                    ax.axvline(q, color='w', lw=0.5)
+            elif x == 0 and y > 0:
+                q, r = meters2indices(x, y)
+                if r > 0 and r < ny:
+                    ax.axhline(r, color='w', lw=0.5)
+            q, r = meters2indices(x + 50000, y + 50000)
+            if q > 20 and q < nx - 20 and r > 10 and r < ny - 10:
+                ax.text(q, r, sq, color='w',
+                        ha='center', va='center', fontsize=14)
 
     # Add scale bar
     if scale_bar:
@@ -245,7 +285,7 @@ def save_plot(path, fig, heights):
 
 
 def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
-              padding=0.25, evaluations=400):
+              padding=0.25, evaluations=400, figsize=(8, 5)):
     """
     Draws a line between two points and evaluates a function along it.
 
@@ -288,7 +328,7 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     y = [f(*x) for x in p]
 
     # Plot
-    fig = matplotlib.figure.Figure(figsize=(8, 5))
+    fig = matplotlib.figure.Figure(figsize=figsize)
     fig.subplots_adjust(0.1, 0.1, 0.99, 0.99)
     ax = fig.add_subplot(1, 1, 1)
     ax.set_xlabel('Distance (m)')

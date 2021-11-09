@@ -120,6 +120,7 @@ def extract(basename, heights, resolution, print_to_screen=True):
         print(f'Reading from {fname}')
         i = 0
 
+    t = nevis.Timer()
     with zipfile.ZipFile(fname, 'r') as f:
 
         # Find inner zip files
@@ -139,7 +140,7 @@ def extract(basename, heights, resolution, print_to_screen=True):
                 sys.stdout.flush()
 
     if print_to_screen:
-        print('\nDone')
+        print(f'\nFinished, after {t.format()}')
 
 
 def read_nested_zip(parent, name, heights, resolution):
@@ -245,15 +246,23 @@ def gb(downsampling=None):
             # Fill it up
             extract(terrain_file, heights, resolution)
 
+            # Replace missing values by far-below-sea level
+            heights[np.isnan(heights)] = -100
+
+            # Fix odd squares
+            fix_sea_levels_in_odd_squares(heights)
+
+            # Add a few fake damns
+            save_cambridgeshire(heights)
+
+            # Use "sea mask" to set sea points to -100
+            set_sea_level(heights, -100)
+
+            # Make sea slope to make land more findable
+            add_sea_slope(heights, -100)
+
             print(f'Saving to {cached}...')
             np.save(cached, heights)
-
-        # Replace missing values by far-below-sea level
-        heights[np.isnan(heights)] = -10
-
-        # Flatten the sea
-        sea = -5
-        heights[heights < sea] = sea
 
         # Store
         _heights = heights
@@ -271,6 +280,307 @@ def gb(downsampling=None):
                 'Data already downsampled with {nevis._heights_downsampling}.')
 
     return _heights
+
+
+def fix_sea_levels_in_odd_squares(heights):
+    """
+    "Correct" sea level data in squares with known anomalies.
+    """
+    # Fix sea level in NT68
+    x, w = Coords.from_square_with_size('NT68')
+    x, y = x.grid[0] // resolution, x.grid[1] // resolution
+    w = w // resolution
+    view = heights[y:y + w, x:x + w]
+    view[view < 2.5] -= 2.1
+
+    # Fix sea level in NR24, 34, 44
+    x, w = Coords.from_square_with_size('NR24')
+    x, y = x.grid[0] // resolution, x.grid[1] // resolution
+    w = w // resolution
+    view = heights[y:y + w, x:x + 3 * w]
+    view[view < 0.2] -= 10
+
+    # Fix sea level in NR33
+    x, w = Coords.from_square_with_size('NR33')
+    x, y = x.grid[0] // resolution, x.grid[1] // resolution
+    w = w // resolution
+    view = heights[y:y + w, x:x + w]
+    view[view < 0.2] -= 10
+
+    # Fix sea level in NR35
+    x, w = Coords.from_square_with_size('NR35')
+    x, y = x.grid[0] // resolution, x.grid[1] // resolution
+    w = w // resolution
+    view = heights[y:y + w, x:x + w]
+    view[view < 0.2] -= 0.5
+
+    # Fix sea level in NR56
+    x, w = Coords.from_square_with_size('NR56')
+    x, y = x.grid[0] // resolution, x.grid[1] // resolution
+    w = w // resolution
+    view = heights[y:y + w, x:x + w]
+    view[view < 0.1] = -10
+
+    # Fix sea level in NR57
+    x, w = Coords.from_square_with_size('NR57')
+    x, y = x.grid[0] // resolution, x.grid[1] // resolution
+    w = w // resolution
+    view = heights[y:y + w, x:x + w]
+    view[view < 0.1] -= 0.5
+
+    # Fix sea level in NR76
+    x, w = Coords.from_square_with_size('NR76')
+    x, y = x.grid[0] // resolution, x.grid[1] // resolution
+    w = w // resolution
+    view = heights[y:y + w, x:x + w]
+    view[view < 0.1] -= 0.5
+
+    # Fix sea level in NR65,75,64,74
+    x, w = Coords.from_square_with_size('NR64')
+    x, y = x.grid[0] // resolution, x.grid[1] // resolution
+    w = w // resolution
+    view = heights[y:y + 2 * w, x:x + 2 * w]
+    view[view < 0.1] = -10
+    del(view)
+
+
+def save_cambridgeshire(heights):
+    """
+    Artificially raise the level of some river beds to stop Cambridgeshire from
+    flooding.
+    """
+    # Block river in TF 50, stopping a lot of flooding in cambridgeshire
+    heights[6047, 11183] = 0.01
+
+    # Block river Yare in TG 50, and Oulton Dyke in TM59, stopping lots of
+    # flooding near Norwich
+    heights[6151, 13041] = 0.01
+    heights[5851, 13013] = 0.01
+
+
+def set_sea_level(heights, s, print_to_screen=True):
+    """
+    Create a "mask" on the heights map, by setting all entries suspected to be
+    sea to a fixed (very low) "sea level" value ``s``.
+    """
+    # Find a "sea mask", set all pixels to s
+    if print_to_screen:
+        print('Creating sea bitmask...')
+    t = nevis.Timer()
+
+    # Treat each square separately, starting bottom left and spiraling inwards
+    # To iterate in this way, we first create a list of squares
+    d = 80  # Trial and error shows this is near optimal
+    squares = _spiral_squares(heights, d)
+
+    # The edges are all sea
+    e = 1
+    heights[:e, :] = s
+    heights[-e:, :] = s
+    heights[:, :e] = s
+    heights[:, -e:] = s
+
+    # Iterate over squares, and apply "sea mask" in each individually
+    iters = 0
+    ny, nx = heights.shape
+    zmax = 100
+    for z in range(zmax):
+
+        skip = []
+        changed = False
+        for i, sq in enumerate(squares):
+            if print_to_screen:
+                iters += 1
+                if iters % 100 == 0:
+                    print('.', end=(None if (iters // 100) % 79 == 0 else ''))
+                    sys.stdout.flush()
+
+            # Create views of center of square, plus neighbours
+            x0, y0 = sq
+            x1, y1 = x0 + d, y0 + d
+
+            # At the edge? Then translate by 1 pixel
+            x0, y0 = max(x0, 1), max(y0, 1)
+            x1, y1 = min(x1, nx - 1), min(y1, ny - 1)
+
+            # Create view and views of neighbours
+            v = heights[y0: y1, x0: x1]
+            v0 = heights[y0 + 1: y1 + 1, x0: x1]  # Above
+            v1 = heights[y0 - 1: y1 - 1, x0: x1]  # Below
+            v2 = heights[y0: y1, x0 - 1: x1 - 1]  # Left
+            v3 = heights[y0: y1, x0 + 1: x1 + 1]  # Right
+
+            # Skip easy squares
+            if np.all(v < 0):
+                if (np.any(v == s) | np.any(v0 == s) | np.any(v1 == s)
+                        | np.any(v2 == s) | np.any(v3 == s)):
+                    v[:] = s
+                    skip.append(i)
+                    changed = True
+                    # Don't skip if < 0 but no s neighbours _yet_
+                continue
+            elif np.all(v > 0):
+                skip.append(i)
+                continue
+
+            kmax = 1000
+            for k in range(1000):
+                n = (v <= 0) & (v != s) & (
+                    (v0 == s) | (v1 == s) | (v2 == s) | (v3 == s))
+                if not np.any(n):
+                    break
+                v[n] = s
+                changed = True
+            if k + 1 == kmax:
+                print('WARNING: Reached kmax')
+
+        for i in reversed(skip):
+            del(squares[i])
+        if not squares:
+            break
+        if not changed:
+            break
+
+    if z + 1 == zmax:
+        print('WARNING: Reached zmax')
+
+    if print_to_screen:
+        print(f'\nFinished, after {t.format()}')
+
+
+def add_sea_slope(heights, s, print_to_screen=True):
+    """
+    Make the sea slope downwards, as you move further away from the coast.
+    """
+    print('Adding slope to sea bed')
+    t = nevis.Timer()
+
+    h = 0.01
+    ny, nx = heights.shape
+
+    v0 = heights[1:]
+    v1 = heights[:-1]
+    v2 = heights[:, 1:]
+    v3 = heights[:, :-1]
+
+    yd, xd = np.nonzero(np.logical_and(v1 == s, v0 != s))
+    yu, xu = np.nonzero(np.logical_and(v0 == s, v1 != s))
+    yl, xl = np.nonzero(np.logical_and(v3 == s, v2 != s))
+    yr, xr = np.nonzero(np.logical_and(v2 == s, v3 != s))
+    y = np.concatenate((yd, yu + 1, yl, yr))
+    x = np.concatenate((xd, xu, xl, xr + 1))
+    heights[y, x] = s - h
+
+    j = 0
+    for i in range(ny * nx):
+        if i % 10 == 0:
+            j += 1
+            print('.', end=(None if j % 79 == 0 else ''))
+            sys.stdout.flush()
+
+        # Move down
+        ok = np.nonzero(y > 0)
+        yd, xd = y[ok] - 1, x[ok]
+        ok = np.nonzero((heights[yd, xd] == s)
+                        | (heights[yd, xd] < heights[yd + 1, xd] - h))
+        yd, xd = yd[ok], xd[ok]
+        heights[yd, xd] = heights[yd + 1, xd] - h
+
+        # Move up
+        ok = np.nonzero(y < ny - 1)
+        yu, xu = y[ok] + 1, x[ok]
+        ok = np.nonzero((heights[yu, xu] == s)
+                        | (heights[yu, xu] < heights[yu - 1, xu] - h))
+        yu, xu = yu[ok], xu[ok]
+        heights[yu, xu] = heights[yu - 1, xu] - h
+
+        # Move left
+        ok = np.nonzero(x > 0)
+        yl, xl = y[ok], x[ok] - 1
+        ok = np.nonzero((heights[yl, xl] == s)
+                        | (heights[yl, xl] < heights[yl, xl + 1] - h))
+        yl, xl = yl[ok], xl[ok]
+        heights[yl, xl] = heights[yl, xl + 1] - h
+
+        # Move right
+        ok = np.nonzero(x < nx - 1)
+        yr, xr = y[ok], x[ok] + 1
+        ok = np.nonzero((heights[yr, xr] == s)
+                        | (heights[yr, xr] < heights[yr, xr - 1] - h))
+        yr, xr = yr[ok], xr[ok]
+        heights[yr, xr] = heights[yr, xr - 1] - h
+
+        # Move down-left
+        ok = np.nonzero((y > 0) & (x > 0))
+        ydl, xdl = y[ok] - 1, x[ok] - 1
+        ok = np.nonzero((heights[ydl, xdl] == s)
+                        | (heights[ydl, xdl] < heights[ydl + 1, xdl + 1] - h))
+        ydl, xdl = ydl[ok], xdl[ok]
+        heights[ydl, xdl] = heights[ydl + 1, xdl + 1] - h
+
+        # Move down-right
+        ok = np.nonzero((y > 0) & (x < nx - 1))
+        ydr, xdr = y[ok] - 1, x[ok] + 1
+        ok = np.nonzero((heights[ydr, xdr] == s)
+                        | (heights[ydr, xdr] < heights[ydr + 1, xdr - 1] - h))
+        ydr, xdr = ydr[ok], xdr[ok]
+        heights[ydr, xdr] = heights[ydr + 1, xdr - 1] - h
+
+        # Move up-left
+        ok = np.nonzero((y < ny - 1) & (x > 0))
+        yul, xul = y[ok] + 1, x[ok] - 1
+        ok = np.nonzero((heights[yul, xul] == s)
+                        | (heights[yul, xul] < heights[yul - 1, xul + 1] - h))
+        yul, xul = yul[ok], xul[ok]
+        heights[yul, xul] = heights[yul - 1, xul + 1] - h
+
+        # Move up-right
+        ok = np.nonzero((y < ny - 1) & (x < nx - 1))
+        yur, xur = y[ok] + 1, x[ok] + 1
+        ok = np.nonzero((heights[yur, xur] == s)
+                        | (heights[yur, xur] < heights[yur - 1, xur - 1] - h))
+        yur, xur = yur[ok], xur[ok]
+        heights[yur, xur] = heights[yur - 1, xur - 1] - h
+
+        y = np.concatenate((yd, yu, yl, yr, ydl, ydr, yul, yur))
+        x = np.concatenate((xd, xu, xl, xr, xdl, xdr, xul, xur))
+        if len(y) == 0:
+            break
+
+    heights[heights < s] -= s
+
+    print(f'\nFinished, after {t.format()}')
+
+
+def _spiral_squares(heights, d):
+    """
+    Returns a list of squares (indicated by the lower-left corner) that cover
+    the map, starting lower-left and spiraling inward. Each square has size
+    ``d``.
+    """
+    squares = []
+    x0, y0 = (0, 0)
+    y1, x1 = heights.shape
+    while x1 > x0:
+        for x in range(x0, x1, d):
+            squares.append((x, y0))
+        y0 += d
+        if y1 <= y0:
+            break
+        for y in range(y0, y1, d):
+            squares.append((x1 - d, y))
+        x1 -= d
+        if x1 <= x0:
+            break
+        for x in range(x1 - d, x0 - d, -d):
+            squares.append((x, y1 - d))
+        y1 -= d
+        if y1 <= y0:
+            break
+        for y in range(y1 - d, y0 - d, -d):
+            squares.append((x0, y))
+        x0 += d
+    return squares
 
 
 def spline():
@@ -546,6 +856,7 @@ def spacing():
 
 
 Coords.ben = Coords(gridx=216666, gridy=771288)
+Coords.fen = Coords(gridx=520483, gridy=289083)
 Coords.pub = {
     #'Ye olde trip to jerusalem': Coords(gridx=457034, gridy=339443},
     'Bear': Coords(gridx=451473, gridy=206135),
@@ -558,6 +869,11 @@ Coords.pub = {
 def ben():
     """ Returns the coordinates of Ben Nevis. """
     return Coords.ben
+
+
+def fen():
+    """ Returns the coordinates of Holme's Glen """
+    return Coords.fen
 
 
 def pub(name=None):
@@ -730,4 +1046,28 @@ class Hill(object):
 
     def __str__(self):
         return f'{self._name} ({self.height}m)'
+
+
+def squares():
+    """
+    Returns a list of tuples ``(name, x, y)`` with two-letter 100km grid square
+    names and lower-left corners, covering the area of the data.
+    """
+    squares = []
+
+    d = 100000
+    i0, i1 = 1, 0   # Start on 2nd row (QRSTU)
+    for y in range(0, height, d):
+        j0, j1 = 2, 0   # Start on 2nd letter (S,N)
+        for x in range(0, width, d):
+            squares.append((GL[i0][j0] + GL[i1][j1], x, y))
+            j1 += 1
+            if j1 == 5:
+                j1 = 0
+                j0 += 1
+        i1 += 1
+        if i1 == 5:
+            i1 = 0
+            i0 += 1
+    return squares
 

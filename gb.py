@@ -9,10 +9,26 @@ import nevis
 
 # Get normalised coordinates, if given
 nevis.howdy('Version')
-if len(sys.argv) == 3:
-    labels = {'User point': nevis.Coords(normx=sys.argv[1], normy=sys.argv[2])}
-else:
-    labels = {'Ben Nevis': nevis.ben()}
+
+# Downsampling and boudnaries
+boundaries = None
+downsampling = 27
+
+# Show grid
+big_grid = True
+small_grid = False
+
+# Zoom in on a grid square
+try:
+    square = nevis.Coords.from_square_with_size(sys.argv[1])
+except Exception:
+    square = None
+if square:
+    x, y = square[0].grid
+    r = nevis.spacing()
+    boundaries = [x, x + square[1] - r, y, y + square[1] - r]
+    downsampling = 1 if square[1] > 50000 else 1
+    small_grid = True
 
 # Show some points
 points = trajectory = None
@@ -31,13 +47,18 @@ if False:
     points = np.array(points)
 
 # Zoom in on an area
-boundaries = None
-downsampling = 27
 if False:
     b = nevis.ben().grid
     d = 20e3
     boundaries = [b[0] - d, b[0] + d, b[1] - d, b[1] + d]
     downsampling = 1
+    small_grid = True
+
+# Labels
+labels = {
+    'Ben Nevis': nevis.ben(),
+    'Holme Fen': nevis.fen(),
+}
 
 # Load data
 nevis.gb()
@@ -49,7 +70,10 @@ fig, ax, heights, g = nevis.plot(
     labels=labels,
     trajectory=trajectory,
     points=points,
-    downsampling=downsampling)
+    big_grid=big_grid,
+    small_grid=small_grid,
+    downsampling=downsampling,
+)
 
 # Save plot, and check resulting image dimensions
 if not os.path.isdir('results'):

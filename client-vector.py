@@ -75,7 +75,7 @@ try:
             p = opt._es.result.xfavorite
             #p = opt.xbest()
             #print(f'{p[0]:> 9.1f}, {p[1]:> 9.1f}')
-
+            client.q('mean', x=p[0], y=p[1])
 
         x0 = b.sample()[0]
         sigma0 = min(b.range()) / 6
@@ -106,7 +106,6 @@ try:
             if i % 20 == 0:
                 print(i, t.format(), np.max(z))
         x1 = opt._es.result.xfavorite
-
 
     print('Sending final answer...')
     client.q('final_answer', x=x1[0], y=x1[1])
