@@ -50,14 +50,15 @@ b = pints.RectangularBoundaries([0, 0], [w, h])
 #
 e = Error(f)
 x0 = b.sample()
-s0 = min(b.range()) / 6
+s0 = min(b.range()) / 2
 opt = pints.OptimisationController(
     e,
-    x0=b.sample(),
-    sigma0=min(b.range()) / 6,
+    x0=x0,
+    sigma0=s0,
     boundaries=b,
     method=pints.CMAES
 )
+opt.optimiser().set_population_size(100)
 opt.set_callback(cb)
 opt.set_max_unchanged_iterations(100, threshold=0.01)
 #x1, f1 = opt.run()

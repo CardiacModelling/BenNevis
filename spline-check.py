@@ -43,12 +43,14 @@ labels = {}
 labels['Ben Nevis'] = nevis.ben()
 square = [210000, 224000, 764000, 778000]
 lines = []
-# Vertical, across peak, through valley
-lines.append([216675, 216675, 771525, 769025])
+# Vertical, from valley to peak
+lines.append([216675, 216675, 769275, 771275])
+# Vertical, from valley to peak
+lines.append([216675, 216675, 773275, 771275])
 # Horizontal, from valley up to peak
-lines.append([214025, 216825, 771275, 771275])
-# Diagonal, into valley
-lines.append([216725, 216725 - 2700, 771325, 771325 - 2700])
+lines.append([214675, 216675, 771275, 771275])
+# Diagonal, from valley up to peak
+lines.append([216675 - 1400, 216675, 771275 - 1400, 771275])
 
 squares.append((square, lines))
 
@@ -134,6 +136,7 @@ lines.append([160025, 175025, 655025, 655025])
 lines.append([160025, 169975, 645025, 645025])
 lines.append([165025, 165025, 659975, 640025])
 squares.append((square, lines))
+
 
 #
 # Ensure results directory exists
