@@ -1,4 +1,3 @@
--e git://github.com/MichaelClerx/wevis.git#egg=wevis
 -e git://github.com/MichaelClerx/bnglonlat.git#egg=bnglonlat
 matplotlib
 numpy

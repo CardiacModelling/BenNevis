@@ -21,18 +21,11 @@ An example with ``downsampling=32`` is shown below.
 
 ![Downscaled map of GB](gb-small.png)
 
-### Messing around on your local machine
+### Running a fit
 
-Next, you can start `local-fit.py` to run a fit.
+Next, you can start `fit.py` to run a fit.
 Results will be stored in the `results` directory.
 This directory will also contain some other files, such as an `.npy` file storing a [cached](https://numpy.org/doc/stable/reference/generated/numpy.load.html) numpy representation of the downloaded terrain data, and a file `spline` that stores a [cached](https://docs.python.org/3/library/pickle.html) spline.
-
-### Setting up a client/server structure
-
-You can also start a server by running `server.py`, and then connect a client with `client.py`.
-This _should_ allow us to run a server on a machine with enough RAM and let e.g. students connect to request heights.
-Each client needs a username and a `token'; these are stored in data/tokens.
-Eventually, we'll set up a separate repo for downloading the client code.
 
 ## Data set
 
