@@ -20,15 +20,10 @@ ny, nx = heights.shape
 r = nevis.spacing()
 r2 = r // 2             # Height is taken at center of grid square
 
-# Get interpolant
-if 'spline' in sys.argv:
-    # Create (or load cached) spline
-    f = nevis.spline()
-    name = 'spline'
-else:
-    # Get linear interpolant
-    f = nevis.linear_interpolant()
-    name = 'linear'
+# Get interpolants
+name = 'interpolation'
+f = nevis.linear_interpolant()
+g = nevis.spline()
 
 #
 # Squares and objects to draw on the maps
@@ -184,14 +179,14 @@ if not os.path.isdir(root):
 # Figure: Full map
 #
 cmap = matplotlib.cm.get_cmap('tab10', 10)
-fig, ax, data, g = nevis.plot(
+fig, ax, data, ff = nevis.plot(
     downsampling=27,
     silent=True)
 for ii, sq in enumerate(squares):
     square, line = sq
     x0, x1, y0, y1 = square
-    x0, y0 = g(x0, y0)
-    x1, y1 = g(x1, y1)
+    x0, y0 = ff(x0, y0)
+    x1, y1 = ff(x1, y1)
     a, b = [x0, x1, x1, x0, x0], [y0, y0, y1, y1, y0]
     ax.plot(a, b, 'w', lw=3)
     ax.plot(a, b, label=f'Square {ii + 1}')
@@ -206,7 +201,7 @@ fig.savefig(path)
 #
 for ii, sq in enumerate(squares):
     square, lines = sq
-    fig, ax, data, g = nevis.plot(
+    fig, ax, data, ff = nevis.plot(
         boundaries=square,
         labels=labels,
         downsampling=1,
@@ -214,8 +209,8 @@ for ii, sq in enumerate(squares):
         silent=True)
     for jj, line in enumerate(lines):
         x0, x1, y0, y1 = line
-        a0, b0 = g(x0, y0)
-        a1, b1 = g(x1, y1)
+        a0, b0 = ff(x0, y0)
+        a1, b1 = ff(x1, y1)
         c, d = 0.1 * (a1 - a0), 0.1 * (b1 - b0)
         color = cmap(jj) if jj < 2 else cmap(1 + jj)
         ax.plot([a0, a1], [b0, b1], label=f'line {jj + 1}', color=color)
@@ -234,7 +229,7 @@ for ii, sq in enumerate(squares):
     for jj, line in enumerate(lines):
         x0, x1, y0, y1 = line
         p0, p1 = nevis.Coords(x0, y0), nevis.Coords(x1, y1)
-        fig, ax, q0, q1 = nevis.plot_line(f, p0, p1, figsize=(14, 10))
+        fig, ax, q0, q1 = nevis.plot_line((f, g), p0, p1, figsize=(14, 10))
         ax.minorticks_on()
         ax.grid(which='major')
         ax.grid(which='minor', color='#eeeeee')

@@ -127,6 +127,8 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
             (f(915), '#999999'),        # Grey at ~3000ft
             (1, 'white'),
         ], N=1024)
+    #import matplotlib.cm
+    #cmap = matplotlib.cm.get_cmap('inferno')
 
     # Work out figure dimensions
     # Note: Matplotlib defaults to 100 dots per inch and 72 points per inch for
@@ -292,7 +294,7 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     Arguments:
 
     ``f``
-        A function ``f(x, y) -> z``.
+        A function ``f(x, y) -> z``, or a sequence of multiple such functions.
     ``point_1``
         The first point as a set of Coords or a numpy array in meters.
     ``point_2``
@@ -324,8 +326,18 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     s = np.linspace(-padding, 1 + padding, evaluations)
     p = [point_1 + sj * r for sj in s]
 
-    # Evaluations
-    y = [f(*x) for x in p]
+    # Functions
+    if callable(f):
+        fs = [f]
+    else:
+        fs = f
+        for f in fs:
+            if not callable(f):
+                raise ValueError(
+                    'f must be a callable or a sequence of callables.')
+
+    # Evaluations-es
+    ys = [[f(*x) for x in p] for f in fs]
 
     # Plot
     fig = matplotlib.figure.Figure(figsize=figsize)
@@ -335,9 +347,11 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     ax.set_ylabel('Altitude - according to our interpolation (m)')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.plot(s * d, y, color='green')
-    ax.axvline(0, color='#1f77b4', label=label_1)
-    ax.axvline(d, color='#7f7f7f', label=label_2)
+    for k, y in enumerate(ys):
+        ax.plot(s * d, y, label=f'Function {1 + k}')
+    ax.axvline(0, ls='-', color='r', label=label_1)
+    ax.axvline(d, ls='--', color='k', label=label_2)
+    ax.axvspan(0, d, color='#fffede', lw=0, zorder=-1)
     ax.legend()
 
     return fig, ax, nevis.Coords(*p[0]), nevis.Coords(*p[-1])

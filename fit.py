@@ -17,6 +17,8 @@ f = nevis.linear_interpolant()
 points = []
 trajectory = []
 
+# Use best found, instead of best guessed
+xbest = False
 
 # Create pints error measure
 class Error(pints.ErrorMeasure):
@@ -37,10 +39,12 @@ class Error(pints.ErrorMeasure):
 
 
 # Create callback to store means
-def cb(opt):
-    trajectory.append(opt._es.result.xfavorite)
-    #trajectory.append(opt.xbest())
-
+if xbest:
+    def cb(opt):
+        trajectory.append(opt.xbest())
+else:
+    def cb(opt):
+        trajectory.append(opt._es.result.xfavorite)
 
 # Create pints boundaries
 w, h = nevis.dimensions()
@@ -62,14 +66,13 @@ opt = pints.OptimisationController(
 opt.optimiser().set_population_size(100)
 opt.set_callback(cb)
 opt.set_max_unchanged_iterations(100, threshold=0.01)
-#x1, f1 = opt.run()
-opt.run()
-x1 = opt.optimiser()._es.result.xfavorite
-
+x1, _ = opt.run()
+if not xbest:
+    x1 = opt.optimiser()._es.result.xfavorite
 
 # Get final result and some comparison points
 x, y = x1
-z = int(round(f(x, y)))
+z = int(round(float(f(x, y))))
 c = nevis.Coords(gridx=x, gridy=y)
 h, d = nevis.Hill.nearest(c)
 

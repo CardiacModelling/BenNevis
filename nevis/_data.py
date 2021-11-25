@@ -843,7 +843,7 @@ def ben():
 
 
 def fen():
-    """ Returns the coordinates of Holme's Glen """
+    """ Returns the coordinates of Holme Fen """
     return Coords.fen
 
 
