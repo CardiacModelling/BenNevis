@@ -40,10 +40,10 @@ class Error(pints.ErrorMeasure):
 
 # Create callback to store means
 if xbest:
-    def cb(opt):
+    def cb(i, opt):
         trajectory.append(opt.xbest())
 else:
-    def cb(opt):
+    def cb(i, opt):
         trajectory.append(opt._es.result.xfavorite)
 
 # Create pints boundaries
