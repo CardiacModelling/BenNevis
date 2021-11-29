@@ -55,8 +55,9 @@ There is a more accurate Terrain 5 set that costs money.
 
 According to wikipedia, the approximate coordinates for Ben Nevis are 216600, 771200 (which is in the NN17 square).
 
-An easy way to find places on the grid is with [https://britishnationalgrid.uk].
-Another nice map with BNG coordinates is [https://explore.osmaps.com], and a great map without BNG coordinates can be found at 
+An easy way to find places on the grid is with https://britishnationalgrid.uk.
+Another nice map with BNG coordinates is https://explore.osmaps.com.
+A a great map without BNG coordinates can be found at https://opentopomap.org.
 
 ### The sea
 
@@ -64,7 +65,7 @@ The sea is a bit messy in these files, as the values depend on e.g. the tide at 
 
 ### Hill tops
 
-Names of hill and mountain tops are taken from [The Database of British and Irish Hills v17.2](http://www.hills-database.co.uk), which is available under a CC-BY license.
+Names of hill and mountain tops are taken from [The Database of British and Irish Hills v17.2](http://www.hills-database.co.uk), which is made available under a CC-BY license.
 
 ### Lattitude and longitude 🐇🕳️
 
@@ -76,14 +77,17 @@ Luckily, somebody's [made a tool for it](https://github.com/urschrei/convertbng)
 Unfortunately, some people have issues installing this, so that we rely on a [less accurate fallback](https://github.com/MichaelClerx/bnglonlat) for the time being.
 If you can, please manually install `convertbng` too (BenNevis will try using this first, before switching to `bnglonglat`).
 
-### Spline interpolation
+### Interpolation
 
-To get heights for any random point, we create a scipy [RectBiVariateSpline])https://docs.scipy.org/doc/scipy/reference/reference/generated/scipy.interpolate.RectBivariateSpline.html) on the data.
+To get heights for arbitrary points, we need to interpolate.
+By default, we use a linear interpolant.
+We also experimented with a scipy [RectBiVariateSpline])https://docs.scipy.org/doc/scipy/reference/reference/generated/scipy.interpolate.RectBivariateSpline.html).
 This takes some time (~30 seconds on a fast machine) and uses considerable memory (~3GB).
+Most importantly, the spline shows some very serious (and unrealistic) artefacts near high gradients (e.g. at the sea side), so that the linear interpolation seems the way to go for now.
 
 ## Tiny API docs
 
-Proper API will be added if this goes public.
+Proper API docs might be added at some point.
 For now, there are only a handful of public objects:
 
 - data utilities (see `_data.py` for details):
