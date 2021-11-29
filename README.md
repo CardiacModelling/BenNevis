@@ -25,7 +25,7 @@ An example with ``downsampling=32`` is shown below.
 
 Next, you can start `fit.py` to run a fit.
 Results will be stored in the `results` directory.
-This directory will also contain some other files, such as an `.npy` file storing a [cached](https://numpy.org/doc/stable/reference/generated/numpy.load.html) numpy representation of the downloaded terrain data, and a file `spline` that stores a [cached](https://docs.python.org/3/library/pickle.html) spline.
+This directory will also contain some other files, such as an `.npy` file storing a [cached](https://numpy.org/doc/stable/reference/generated/numpy.load.html) numpy representation of the downloaded terrain data (and optionally a file called `spline` that stores a [cached](https://docs.python.org/3/library/pickle.html) spline).
 
 ## Data set
 
