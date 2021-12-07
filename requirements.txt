@@ -2,4 +2,4 @@
 matplotlib
 numpy
 scipy
--e git://github.com/pints-team/pints.git@1408-callback#egg=pints
+-e git://github.com/pints-team/pints.git#egg=pints
