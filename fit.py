@@ -18,7 +18,8 @@ points = []
 trajectory = []
 
 # Use best found, instead of best guessed
-xbest = False
+x_best = False
+
 
 # Create pints error measure
 class Error(pints.ErrorMeasure):
@@ -39,12 +40,9 @@ class Error(pints.ErrorMeasure):
 
 
 # Create callback to store means
-if xbest:
-    def cb(i, opt):
-        trajectory.append(opt.xbest())
-else:
-    def cb(i, opt):
-        trajectory.append(opt._es.result.xfavorite)
+def cb(i, opt):
+    trajectory.append(opt.x_best() if x_best else opt.x_guessed())
+
 
 # Create pints boundaries
 w, h = nevis.dimensions()
@@ -66,13 +64,12 @@ opt = pints.OptimisationController(
 opt.optimiser().set_population_size(100)
 opt.set_callback(cb)
 opt.set_max_unchanged_iterations(100, threshold=0.01)
-x1, _ = opt.run()
-if not xbest:
-    x1 = opt.optimiser()._es.result.xfavorite
+opt.set_f_guessed_tracking(not x_best)
+x1, f1 = opt.run()
 
 # Get final result and some comparison points
 x, y = x1
-z = int(round(float(f(x, y))))
+z = int(round(float(f1)))
 c = nevis.Coords(gridx=x, gridy=y)
 h, d = nevis.Hill.nearest(c)
 
@@ -84,7 +81,6 @@ trajectory = np.array(trajectory)
 root = 'results'
 if not os.path.isdir(root):
     os.makedirs(root)
-
 
 #
 # Figure 1: Full map
@@ -128,8 +124,9 @@ path = os.path.join(root, 'local-map-zoom.png')
 print(f'Saving figure to {path}.')
 fig.savefig(path)
 
-
+#
 # Figure 3: Line from known top to you
+#
 fig, ax, p1, p2 = nevis.plot_line(f, c, h.coords, 'You', h.name)
 path = os.path.join(root, 'local-line-plot.png')
 print(f'Saving figure to {path}.')
