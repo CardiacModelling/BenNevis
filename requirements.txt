@@ -1,5 +1,5 @@
--e git://github.com/MichaelClerx/bnglonlat.git#egg=bnglonlat
+-e git+https://github.com/MichaelClerx/bnglonlat.git#egg=bnglonlat
 matplotlib
 numpy
 scipy
--e git://github.com/pints-team/pints.git#egg=pints
+-e git+https://github.com/pints-team/pints.git#egg=pints
