@@ -16,7 +16,7 @@ import pickle
 import random
 import sys
 import urllib.request
-import zipfile
+import zipfile_deflate64 as zipfile
 
 import numpy as np
 import scipy.interpolate
