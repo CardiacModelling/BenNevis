@@ -12,6 +12,8 @@ if sys.hexversion < 0x03060000:
 __version_tuple__ = (0, 0, 2)
 __version__ = '.'.join(str(x) for x in __version_tuple__)
 
+import zlib
+
 # Create public API
 from ._data import (    # noqa
     ben,
