@@ -69,7 +69,7 @@ x1, f1 = opt.run()
 
 # Get final result and some comparison points
 x, y = x1
-z = int(round(float(f1)))
+z = -int(round(float(f1)))
 c = nevis.Coords(gridx=x, gridy=y)
 h, d = nevis.Hill.nearest(c)
 
