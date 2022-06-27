@@ -61,7 +61,7 @@ A a great map without BNG coordinates can be found at https://opentopomap.org.
 
 ### The sea
 
-The sea is a bit messy in these files, as the values depend on e.g. the tide at the time of measuring.
+The sea is a bit messy in these files, as the values depend on mean sea level in each 10x10 km^2 area (OS Tile) relative to OS datum (0m) level [which is mean sea level in Newlyn, Cornwall](https://en.wikipedia.org/wiki/Ordnance_datum).
 
 ### Hill tops
 
