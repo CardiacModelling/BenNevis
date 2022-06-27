@@ -21,7 +21,7 @@ import zipfile
 # Patch the zipfile module to support the PKZIP proprietary DEFLATE64 format
 # This is used by two files in the May 2022 release of OS Terrain 50
 # (data/sd/sd67_OST50GRID_20220506.zip and data/sd/sd68_OST50GRID_20220506.zip)
-import zipfile_deflate64
+import zipfile_deflate64  # noqa
 
 import numpy as np
 import scipy.interpolate
