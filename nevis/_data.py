@@ -291,56 +291,56 @@ def fix_sea_levels_in_odd_squares(heights):
     """
     "Correct" sea level data in squares with known anomalies.
     """
-    # Fix sea level in NT68
+    # Fix sea level in NT68 (last checked on 2022-06-27)
     x, w = Coords.from_square_with_size('NT68')
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
     view = heights[y:y + w, x:x + w]
     view[view < 2.5] -= 2.1
 
-    # Fix sea level in NR24, 34, 44
+    # Fix sea level in NR24, 34, 44 (last checked on 2022-06-27)
     x, w = Coords.from_square_with_size('NR24')
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
     view = heights[y:y + w, x:x + 3 * w]
     view[view < 0.2] -= 10
 
-    # Fix sea level in NR33
+    # Fix sea level in NR33 (last checked on 2022-06-27)
     x, w = Coords.from_square_with_size('NR33')
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
     view = heights[y:y + w, x:x + w]
     view[view < 0.2] -= 10
 
-    # Fix sea level in NR35
+    # Fix sea level in NR35 (last checked on 2022-06-27)
     x, w = Coords.from_square_with_size('NR35')
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
     view = heights[y:y + w, x:x + w]
     view[view < 0.2] -= 0.5
 
-    # Fix sea level in NR56
+    # Fix sea level in NR56 (last checked on 2022-06-27)
     x, w = Coords.from_square_with_size('NR56')
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
     view = heights[y:y + w, x:x + w]
     view[view < 0.1] = -10
 
-    # Fix sea level in NR57
+    # Fix sea level in NR57 (last checked on 2022-06-27)
     x, w = Coords.from_square_with_size('NR57')
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
     view = heights[y:y + w, x:x + w]
     view[view < 0.1] -= 0.5
 
-    # Fix sea level in NR76
+    # Fix sea level in NR76 (last checked on 2022-06-27)
     x, w = Coords.from_square_with_size('NR76')
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
     view = heights[y:y + w, x:x + w]
     view[view < 0.1] -= 0.5
 
-    # Fix sea level in NR65,75,64,74
+    # Fix sea level in NR65,75,64,74 (last checked on 2022-06-27)
     x, w = Coords.from_square_with_size('NR64')
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
@@ -354,6 +354,8 @@ def save_cambridgeshire(heights):
     Artificially raise the level of some river beds to stop Cambridgeshire from
     flooding.
     """
+    # Last checked 2022-06-27
+
     # Block river in TF 50, stopping a lot of flooding in cambridgeshire
     heights[6047, 11183] = 0.01
 
