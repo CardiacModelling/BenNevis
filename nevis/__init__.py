@@ -6,8 +6,10 @@ Main module for Where's Ben Nevis (it's in Scotland).
 #
 # Version number
 #
-__version_tuple__ = (0, 0, 3)
-__version__ = '.'.join(str(x) for x in __version_tuple__)
+from ._nevis_version import (   # noqa
+    __version__,
+    __version_tuple__,
+)
 
 #
 # Check Python version
@@ -91,4 +93,17 @@ def howdy(name='Local'):
     print('        /\/   /\   /  \     ')
     print('     /\/  \  /  \_/    \    ')
     print('    /      \/           \   ')
+
+
+#
+# Test method
+#
+def write_test_figure(path='gb-small.png'):
+    """
+    Create a write a test figure.
+    """
+    gb()
+    labels = {'Ben Nevis': ben(), 'Holme Fen': fen()}
+    fig, ax, heights, g = plot(labels=labels, downsampling=32)
+    save_plot(path, fig, silent=False)
 

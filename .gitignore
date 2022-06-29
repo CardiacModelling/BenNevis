@@ -14,5 +14,5 @@ venv
 # DS Store
 .DS_Store
 
-# Results directory (Should be removed after #42 and #43)
+# Test script results
 results

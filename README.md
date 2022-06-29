@@ -2,22 +2,22 @@
 
 This repository contains the source code for the Python module `nevis`: a fun(?) project that presents the landscape of Great Britain (GB) as a test bed for numerical optimisation or sampling methods.
 
-## Requirements
-
-`nevis` requires Python, with pip-installable dependencies listed in `requirements.txt` (you can install these with `pip install -r requirements.txt`).
-The additional package `convertbng` is recommended, but not required.
-
 ## Installation
+
+`nevis` requires Python 3.6 or newer.
+The additional package `convertbng` is recommended, but not required.
 
 To install without cloning this repository, use
 ```
 pip install nevis
 ```
+or
+```
+pip install nevis[extras]
+```
+to install the `convertbng` module as well.
 
-Developers may wish to clone and install from the repository, using
-```
-pip install -e .
-```
+Developers may wish to clone and install from the repository, using the instructions in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 Next, download the "OS Terrain 50" data set (see "Data set" below) from the Ordnance Survey using:
 ```
@@ -31,6 +31,18 @@ The installation path can be changed by specifying an alternative directory in t
 Note that this data set is licensed under the terms explained here: www.ordnancesurvey.co.uk/opendata/licence
 
 ## Usage
+
+Check that everything was downloaded correctly by plotting a map of Great Britain:
+
+```
+# Import nevis
+import nevis
+
+# Create and store a figure
+nevis.write_test_figure('gb-small.png')
+```
+
+![Downscaled map of GB](gb-small.png)
 
 Usage examples are given in the [examples](./examples) directory.
 
@@ -53,12 +65,14 @@ Full API documentation is currently not provided, but there is only a handful of
   - `linear_interpolant` Returns a linear interpolant over the GB height data.
   - `spline` Returns a spline defined over the GB height data.
 - Plotting (see `_plot.py`)
-  - `plot` creates a plot of a map, with optional labels etc.
-  - `plot_line` creates a plot of the height profile between two points
-  - `png_bytes` turns a matplotlib figure into a `bytes` string
-  - `save_plot` stores a plot and checks its size (only for paranoid people)
-- Various (see `_util.py` for details)
-  - `Timer` times and formats intervals
+  - `plot` Creates a plot of a map, with optional labels etc.
+  - `plot_line` Creates a plot of the height profile between two points.
+  - `png_bytes` Turns a matplotlib figure into a `bytes` string.
+  - `save_plot` Stores a plot and checks its size. Less paranoid people can use `fig.savefig()` instead.
+- Various (see `_util.py` and `__init__.py`)
+  - `howdy` Prints some old-school ascii art including the version number.
+  - `Timer` Times and formats intervals.
+  - `write_test_figure` Loads the data and writes a test figure to disk.
 
 ## Data set
 

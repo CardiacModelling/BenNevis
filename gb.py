@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 #
-# Load the data and plot a map of GB.
+# Loads the data and plot a map of GB.
+# Extra command-line arguments can be used to show only part of the data, e.g.
+#
+#   python gb.py NY12
 #
 import os
 import sys
@@ -73,10 +76,11 @@ fig, ax, heights, g = nevis.plot(
     big_grid=big_grid,
     small_grid=small_grid,
     downsampling=downsampling,
+    silent=False,
 )
 
 # Save plot, and check resulting image dimensions
 if not os.path.isdir('results'):
     os.makedirs('results')
-nevis.save_plot('results/gb.png', fig, heights)
+nevis.save_plot('results/gb.png', fig, heights, silent=False)
 

@@ -21,15 +21,14 @@ import nevis
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
          scale_bar=True, big_grid=False, small_grid=False, downsampling=27,
-         silent=True):
+         silent=True, headless=True):
     """
     Creates a plot of the 2D elevation data in ``heights``, downsampled with a
     factor ``downsampling``.
 
-    Returns a tuple ``(fig, ax, heights, g)`` where ``fig`` is the created
-    figure, ``ax`` is the axes the image is plotted on, and ``heights`` is the
-    downsampled numpy array. The final entry ``g`` is a function that converts
-    coordinates in meters to coordinates on the map axes.
+    Note that this method assumes you will want to write the figure to disk
+    with :meth:`fig.savefig()`. If you want to display it using ``pyplot``,
+    set ``headless=False``.
 
     Arguments:
 
@@ -57,7 +56,13 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         points to pixels in either direction).
     ``silent``
         Set to ``True`` to stop writing a status to stdout.
+    ``headless``
+        Set to ``False`` to create the figure using pyplot.
 
+    Returns a tuple ``(fig, ax, heights, g)`` where ``fig`` is the created
+    figure, ``ax`` is the axes the image is plotted on, and ``heights`` is the
+    downsampled numpy array. The final entry ``g`` is a function that converts
+    coordinates in meters to coordinates on the map axes.
     """
     # Current array shape
     heights = nevis.gb()
@@ -143,8 +148,15 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         print(f'Figure dimensions: {fw}" by {fh}" at {dpi} dpi')
         print(f'Should result in {nx} by {ny} pixels.')
 
-    fig = matplotlib.figure.Figure(figsize=(fw, fh), dpi=dpi)
+    # Create figure
+    if headless:
+        fig = matplotlib.figure.Figure(figsize=(fw, fh), dpi=dpi)
+    else:
+        import matplotlib.pyplot as plt
+        fig = plt.figure(figsize=(fw, fh), dpi=dpi)
     fig.subplots_adjust(0, 0, 1, 1)
+
+    # Add axes
     ax = fig.add_subplot(1, 1, 1)
     ax.set_axis_off()
     ax.imshow(
@@ -256,39 +268,14 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     return fig, ax, heights, meters2indices
 
 
-def save_plot(path, fig, heights):
-    """
-    Stores the given figure using ``fig.savefig(path)``, but will also check
-    that the image dimensions (in pixels) equal the size of ``heights``.
-
-    This check requires ``PIL`` to be installed (will silently fail if not).
-    """
-    # Store
-    fig.savefig(path)
-
-    # Try importing PIL to check image size
-    try:
-        import PIL
-    except ImportError:
-        return
-
-    # Suppress "DecompressionBomb" warning
-    PIL.Image.MAX_IMAGE_PIXELS = None
-
-    # Open image, get file size
-    with PIL.Image.open(path) as im:
-        ix, iy = im.size
-
-    if (iy, ix) != heights.shape:
-        warnings.warn(
-            f'Unexpected image size: width {ix}, height {iy}, expecting'
-            f' {heights.shape}.')
-
-
 def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
-              padding=0.25, evaluations=400, figsize=(8, 5)):
+              padding=0.25, evaluations=400, figsize=(8, 5), headless=True):
     """
     Draws a line between two points and evaluates a function along it.
+
+    Note that this method assumes you will want to write the figure to disk
+    with :meth:`fig.savefig()`. If you want to display it using ``pyplot``,
+    set ``headless=False``.
 
     Arguments:
 
@@ -306,6 +293,10 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
         line on either side by 25% of the distance between the two points).
     ``evaluations``
         The number of evaluations of ``f`` to plot.
+    ``figsize``
+        The default figure size
+    ``headless``
+        Set to ``False`` to create the figure using pyplot.
 
     Returns a tuple ``(fig, ax, p1, p2)`` where ``fig`` is the generated
     figure, ``ax`` is the axes object within that figure, and ``p1`` and ``p2``
@@ -338,8 +329,14 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     # Evaluations-es
     ys = [[f(*x) for x in p] for f in fs]
 
+    # Create figure
+    if headless:
+        fig = matplotlib.figure.Figure(figsize=figsize)
+    else:
+        import matplotlib.pyplot as plt
+        fig = plt.figure(figsize=figsize)
+
     # Plot
-    fig = matplotlib.figure.Figure(figsize=figsize)
     fig.subplots_adjust(0.1, 0.1, 0.99, 0.99)
     ax = fig.add_subplot(1, 1, 1)
     ax.set_xlabel('Distance (m)')
@@ -354,6 +351,43 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     ax.legend()
 
     return fig, ax, nevis.Coords(*p[0]), nevis.Coords(*p[-1])
+
+
+def save_plot(path, fig, heights=None, silent=True):
+    """
+    Stores the given figure using ``fig.savefig(path)``.
+
+    If ``heights`` is given and ``PIL`` (pillow) is installed it will also
+    check that the image dimensions (in pixels) equal the size of ``heights``.
+    """
+    if not silent:
+        print(f'Writing figure to {path}')
+    fig.savefig(path)
+
+    # Try importing PIL to check image size
+    if heights is None:
+        return
+    try:
+        import PIL
+    except ImportError:
+        return
+
+    # Suppress "DecompressionBomb" warning
+    PIL.Image.MAX_IMAGE_PIXELS = None
+
+    # Open image, get file size
+    if not silent:
+        print('Checking size of generated image')
+    with PIL.Image.open(path) as im:
+        ix, iy = im.size
+
+    if (iy, ix) == heights.shape:
+        if not silent:
+            print('Image size OK')
+    else:
+        warnings.warn(
+            f'Unexpected image size: width {ix}, height {iy}, expecting'
+            f' {heights.shape}.')
 
 
 def png_bytes(fig):

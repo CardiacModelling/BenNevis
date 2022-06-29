@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+#
+# Fitting example.
+#
+# TODO: This will be moved to a jupyter notebook
+# pip install -e git+https://github.com/pints-team/pints.git#egg=pints
+#
+#
 import os
 import sys
 

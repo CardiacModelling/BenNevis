@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Creates various plots to check the interpolation
+# Creates various plots to check the interpolation methods.
 #
 import os
 import sys
