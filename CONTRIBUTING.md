@@ -1,4 +1,4 @@
-# Contributing to Where's Ben Nevis?
+# Contributing to Where is Ben Nevis?
 
 ## Developer installation
 
@@ -11,7 +11,7 @@ pip install -e .[dev,extras]
 
 Use `gb.py` to plot the full data set in `results/gb.png`.
 
-Zoom in on e.g. the NY square using `gb.py NY`, or zoom even further with `gb.py NY3`
+Zoom in on e.g. the NY square using `gb.py NY`, or zoom even further with e.g. `gb.py NY3`
 
 ## Check the quality of the interpolants
 
@@ -24,9 +24,9 @@ At the moment, no unit tests are implemented.
 
 ### Style testing
 
-Use `flake8`, or `flake8 -j8` to use up to 8 cores.
-This should be installed automatically if you added the `dev` switch when installing (see above).
-Some errors are ignored, as specified in the file `.flake8`.
+Use `flake8`, or `flake8 -j4` to use up to 4 cores.
+Flake8 should be installed automatically if you added the `dev` switch when installing (see above).
+Some style guidelines are ignored, as specified in the file `.flake8`.
 
 ### Github actions
 

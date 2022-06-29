@@ -89,7 +89,7 @@ def gb(downsampling=None):
     return _heights
 
 
-def download_os50(force=False):
+def download_os_terrain_50(force=False):
     """
     Downloads, unpacks and processes the OS Terrain 50 data set.
 
