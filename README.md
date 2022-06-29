@@ -1,6 +1,6 @@
 # Where is Ben Nevis?
 
-"Where is Ben Nevis" is a fun(?) project which presents the landscape of Great Britain (GB) as a test bed for numerical optimisation and sampling methods.
+"Where is Ben Nevis" is a fun(?) project which presents the landscape of Great Britain (GB) as a testbed for numerical optimisation and sampling methods.
 Its main component is a Python module called `nevis`, which can download height data from the Ordnance Survey, process it to make it more suitable for optimisation, and provide interpolating functions so that it can be treated as a continuous (but not smooth) real-valued function.
 
 ## Installation
@@ -19,7 +19,7 @@ pip install nevis[extras]
 This will make conversion from points in the data set to longitude and lattitude more accurate.
 
 Developers may wish to skip PyPI installation, clone the [GitHub repository](https://github.com/CardiacModelling/BenNevis), and install from there instead.
-Instructions for this are provided in [CONTRIBUTING.md](https://github.com/CardiacModelling/BenNevis/CONTRIBUTING.md).
+Instructions for this are provided in [CONTRIBUTING.md](https://github.com/CardiacModelling/BenNevis/blob/main/CONTRIBUTING.md).
 
 Next, the "OS Terrain 50" data set needs to be downloaded from from the Ordnance Survey website (see the "Data set" section below).
 This is achieved using:
@@ -31,7 +31,7 @@ By default, the heights data is installed into `~/nevis-data`, for example `/hom
 This installation path can be changed by specifying an alternative directory in the environment variable `NEVIS_PATH` before running `download_os_terrain_50()`.
 
 Note that OS Terrain 50 is not part of `nevis` or "Where is Ben Nevis", and comes with its own license.
-See [LICENSE.md](https://github.com/CardiacModelling/BenNevis/LICENSE.md) for details.
+See [LICENSE.md](https://github.com/CardiacModelling/BenNevis/blob/main/LICENSE.md) for details.
 
 To check that the installation was succesfull, you can plot a height map of GB:
 
@@ -48,12 +48,12 @@ nevis.write_test_figure('gb-small.png')
 
 This should create a file (in your working directory) called `gb-small.png`:
 
-![Downscaled map of GB](https://github.com/CardiacModelling/BenNevis/gb-small.png)
+![Downscaled map of GB](https://github.com/CardiacModelling/BenNevis/blob/main/gb-small.png)
 
 ## Usage
 
-Detailed usage examples will eventually be provided in the [examples](https://github.com/CardiacModelling/BenNevis/examples) directory.
-For the time being, please see [fit.py](https://github.com/CardiacModelling/BenNevis/fit.py) for an example.
+Detailed usage examples will eventually be provided in the [examples](https://github.com/CardiacModelling/BenNevis/tree/main/examples) directory.
+For the time being, please see [fit.py](https://github.com/CardiacModelling/blob/main/BenNevis/fit.py) for an example.
 
 An example of its output is given below:
 ```
@@ -169,7 +169,7 @@ The sea is a bit messy in these files, as the values depend on mean sea level in
 
 Names of hill and mountain tops are taken from [The Database of British and Irish Hills v17.2](http://www.hills-database.co.uk), which is made available under a CC-BY license.
 A greatly reduced list, based on this database, is included in `nevis`.
-Please see [LICENSE.md](https://github.com/CardiacModelling/BenNevis) for the licensing information.
+Please see [LICENSE.md](https://github.com/CardiacModelling/BenNevis/blob/main/LICENSE.md) for the licensing information.
 
 ### Lattitude and longitude 🐇🕳️
 
