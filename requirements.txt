@@ -1,4 +1,4 @@
--e git+https://github.com/MichaelClerx/bnglonlat.git#egg=bnglonlat
+bnglonlat
 matplotlib
 numpy
 scipy

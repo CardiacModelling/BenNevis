@@ -14,13 +14,5 @@ venv
 # DS Store
 .DS_Store
 
-# Downloaded and unzipped terrain 50 data
-data/terr50_gagg_gb
-data/terr50_gagg_gb.*
-data/spline
-
-# User login tokens
-data/tokens
-
-# Local results
+# Results directory (Should be removed after #42 and #43)
 results

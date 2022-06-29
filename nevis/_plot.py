@@ -10,6 +10,7 @@ Provides plotting methods.
 #
 import os
 import tempfile
+import warnings
 
 import matplotlib.colors
 import matplotlib.figure
@@ -20,7 +21,7 @@ import nevis
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
          scale_bar=True, big_grid=False, small_grid=False, downsampling=27,
-         silent=False):
+         silent=True):
     """
     Creates a plot of the 2D elevation data in ``heights``, downsampled with a
     factor ``downsampling``.
@@ -275,15 +276,13 @@ def save_plot(path, fig, heights):
     PIL.Image.MAX_IMAGE_PIXELS = None
 
     # Open image, get file size
-    print('Checking size of generated image')
     with PIL.Image.open(path) as im:
         ix, iy = im.size
 
-    if (iy, ix) == heights.shape:
-        print('Image size OK')
-    else:
-        print(f'Unexpected image size: width {ix}, height {iy}, expecting'
-              f' {heights.shape}.')
+    if (iy, ix) != heights.shape:
+        warnings.warn(
+            f'Unexpected image size: width {ix}, height {iy}, expecting'
+            f' {heights.shape}.')
 
 
 def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',

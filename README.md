@@ -1,31 +1,64 @@
-# Where is Ben Nevis?
+# Where's Ben Nevis?
 
-This repository contains the first files for a fun(?) project that tests optimisation methods on Ordnance Survey (OS) data for Great Britain.
+This repository contains the source code for the Python module `nevis`: a fun(?) project that presents the landscape of Great Britain (GB) as a test bed for numerical optimisation or sampling methods.
 
 ## Requirements
 
-Python 3.6 or higher, with pip-installable dependencies listed in `requirements.txt` (you can install these with `pip install -r requirements.txt`).
+`nevis` requires Python, with pip-installable dependencies listed in `requirements.txt` (you can install these with `pip install -r requirements.txt`).
 The additional package `convertbng` is recommended, but not required.
 
-When first run, this script will download the data from the OS (about 160MB) and then convert it to a NumPy array stored on disk (about 1.5GB).
+## Installation
+
+To install without cloning this repository, use
+```
+pip install nevis
+```
+
+Developers may wish to clone and install from the repository, using
+```
+pip install -e .
+```
+
+Next, download the "OS Terrain 50" data set (see "Data set" below) from the Ordnance Survey using:
+```
+import nevis
+nevis.load_os50()
+```
+By default, the data is installed into the user directory `~/nevis-data`, for example `/home/michael/nevis-data` on a Linux system or `C:\Users\michael\nevis-data` on Windows.
+The installation path can be changed by specifying an alternative directory in the environment variable `NEVIS_PATH` before running `load_os50()`.
+
+
+Note that this data set is licensed under the terms explained here: www.ordnancesurvey.co.uk/opendata/licence
 
 ## Usage
 
-### First run: plot a map of GB
+Usage examples are given in the [examples](./examples) directory.
 
-After downloading, run `gb.py` to download and unpack the data and test that all went well by plotting a map of great brittain.
-(Don't worry, it'll be a lot faster the 2nd time.)
+Full API documentation is currently not provided, but there is only a handful of public objects:
 
-The amount of downscaling can be set using the variable ``downsampling``.
-An example with ``downsampling=32`` is shown below.
-
-![Downscaled map of GB](gb-small.png)
-
-### Running a fit
-
-Next, you can start `fit.py` to run a fit.
-Results will be stored in the `results` directory.
-This directory will also contain some other files, such as an `.npy` file storing a [cached](https://numpy.org/doc/stable/reference/generated/numpy.load.html) numpy representation of the downloaded terrain data (and optionally a file called `spline` that stores a [cached](https://docs.python.org/3/library/pickle.html) spline).
+- British national grid utilities (see `_bng.py`):
+  - `ben` Returns grid coordinates (`Coords`) for Ben Nevis.
+  - `Coords` Represents grid coordinates and can convert to various forms.
+  - `dimensions` Returns the physical dimensions (in meters) of the grid.
+  - `fen` Returns grid coordinates for Holme Fen, the lowest point (inland).
+  - `Hill` Represents a hill from the hills database.
+  - `pub` Returns grid coordinates for a random pub, selected from a very short list.
+  - `squares` Returns the coordinates of major BNG squares.
+- OS Terrain 50 loading methods (see `_os50.py`):
+  - `DataNotFoundError` An error raised if the data was not downloaded or can't be found.
+  - `download_os50` The method to download and unpack the data. Only needs to be run once.
+  - `gb` Loads and returns the heights data for GB.
+  - `spacing` returns the physical distance (in meters) between the points returned by `gb`.
+- Interpolants (see `_interpolation.py`)
+  - `linear_interpolant` Returns a linear interpolant over the GB height data.
+  - `spline` Returns a spline defined over the GB height data.
+- Plotting (see `_plot.py`)
+  - `plot` creates a plot of a map, with optional labels etc.
+  - `plot_line` creates a plot of the height profile between two points
+  - `png_bytes` turns a matplotlib figure into a `bytes` string
+  - `save_plot` stores a plot and checks its size (only for paranoid people)
+- Various (see `_util.py` for details)
+  - `Timer` times and formats intervals
 
 ## Data set
 
@@ -53,7 +86,7 @@ and the distance between any two data points is given as `cellsize`.
 In the Terrain 50 data set, the cellsize is always 50 (giving it its name).
 There is a more accurate Terrain 5 set that costs money.
 
-According to wikipedia, the approximate coordinates for Ben Nevis are 216600, 771200 (which is in the NN17 square).
+According to [Wikipedia](https://en.wikipedia.org/wiki/Ordnance_Survey_National_Grid#Grid_digits), the approximate coordinates for Ben Nevis are 216600, 771200 (which is in the NN17 square).
 
 An easy way to find places on the grid is with https://britishnationalgrid.uk.
 Another nice map with BNG coordinates is https://explore.osmaps.com.
@@ -84,29 +117,4 @@ By default, we use a linear interpolant.
 We also experimented with a scipy [RectBiVariateSpline](https://docs.scipy.org/doc/scipy/reference/reference/generated/scipy.interpolate.RectBivariateSpline.html).
 This takes some time (~30 seconds on a fast machine) and uses considerable memory (~3GB).
 Most importantly, the spline shows some very serious (and unrealistic) artefacts near high gradients (e.g. at the sea side), so that the linear interpolation seems the way to go for now.
-
-## Tiny API docs
-
-Proper API docs might be added at some point.
-For now, there are only a handful of public objects:
-
-- data utilities (see `_data.py` for details):
-  - `ben` returns grid coordinates (`Coords`) for Ben Nevis
-  - `Coords` represents grid coordinates and can convert to various forms
-  - `dimensions` returns the physical dimensions (in meters) of the GB height data
-  - `fen` returns grid coordinates for Holme Fen, the lowest point (inland)
-  - `gb` loads and returns the heights data for GB
-  - `Hill` represents a hill from the hills database
-  - `linear_interpolant` returns a linear interpolant over the GB height data
-  - `pub` returns grid coordinates for a random pub, selected from a very short list
-  - `spacing` returns the physical distance (in meters) between grid points
-  - `spline` returns a spline defined over the GB height data
-  - `squares` returns the coordinates of major BNG squares
-- plotting utilities (see `_plot.py` for details)
-  - `plot` creates a plot of a map, with optional labels etc.
-  - `plot_line` creates a plot of the height profile between two points
-  - `png_bytes` turns a matplotlib figure into a `bytes` string
-  - `save_plot` stores a plot and checks its size (only for paranoid people)
-- others (see `_util.py` for details)
-  - `Timer` times and formats intervals
 

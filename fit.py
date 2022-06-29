@@ -8,7 +8,7 @@ import pints
 import nevis
 
 # Load height data, create (or load cached) spline
-nevis.howdy('Local')
+nevis.howdy()
 nevis.gb(9 if '-debug' in sys.argv else None)
 #f = nevis.spline()
 f = nevis.linear_interpolant()

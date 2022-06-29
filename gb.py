@@ -7,8 +7,8 @@ import sys
 
 import nevis
 
-# Get normalised coordinates, if given
-nevis.howdy('Version')
+# Say hi
+nevis.howdy()
 
 # Downsampling and boudnaries
 boundaries = None
