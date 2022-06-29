@@ -53,7 +53,7 @@ This should create a file (in your working directory) called `gb-small.png`:
 ## Usage
 
 Detailed usage examples will eventually be provided in the [examples](https://github.com/CardiacModelling/BenNevis/tree/main/examples) directory.
-For the time being, please see [fit.py](https://github.com/CardiacModelling/blob/main/BenNevis/fit.py) for an example.
+For the time being, please see [fit.py](https://github.com/CardiacModelling/BenNevis/blob/main/fit.py) for an example.
 
 An example of its output is given below:
 ```
@@ -185,7 +185,7 @@ If you can, please manually install `convertbng` too (BenNevis will try using th
 
 To get heights for arbitrary points, we need to interpolate.
 By default, we use a linear interpolant.
-We also experimented with a scipy [RectBiVariateSpline](https://docs.scipy.org/doc/scipy/reference/reference/generated/scipy.interpolate.RectBivariateSpline.html).
+We also experimented with a scipy [RectBiVariateSpline](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RectBivariateSpline.html).
 This takes some time (~30 seconds on a fast machine) and uses considerable memory (~3GB).
 Most importantly, the spline shows some very serious (and unrealistic) artefacts near high gradients (e.g. at the sea side), so that the linear interpolation seems the way to go for now.
 
