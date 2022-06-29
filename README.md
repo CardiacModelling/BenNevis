@@ -4,10 +4,9 @@ This repository contains the source code for the Python module `nevis`: a fun(?)
 
 ## Installation
 
-`nevis` requires Python 3.6 or newer.
-The additional package `convertbng` is recommended, but not required.
+Python 3.6 or newer is required.
 
-To install without cloning this repository, use
+To install directly from PyPI, use
 ```
 pip install nevis
 ```
@@ -15,7 +14,7 @@ or
 ```
 pip install nevis[extras]
 ```
-to install the `convertbng` module as well.
+to install the optional `convertbng` module as well (this will make conversion from points in the data set to longitude and lattitude more accurate).
 
 Developers may wish to clone and install from the repository, using the instructions in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
@@ -27,8 +26,7 @@ nevis.load_os50()
 By default, the data is installed into the user directory `~/nevis-data`, for example `/home/michael/nevis-data` on a Linux system or `C:\Users\michael\nevis-data` on Windows.
 The installation path can be changed by specifying an alternative directory in the environment variable `NEVIS_PATH` before running `load_os50()`.
 
-
-Note that this data set is licensed under the terms explained here: www.ordnancesurvey.co.uk/opendata/licence
+Note that this data set is licensed under the terms explained here: [https://www.ordnancesurvey.co.uk/opendata/licence](https://www.ordnancesurvey.co.uk/opendata/licence).
 
 ## Usage
 

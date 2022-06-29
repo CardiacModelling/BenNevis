@@ -33,3 +33,14 @@ Some errors are ignored, as specified in the file `.flake8`.
 Workflows for github actions are stored in `.github/workflows`.
 At the moment, this only does style testing.
 
+## Uploading to PyPI
+
+If you're me, you can upload to PyPI using:
+
+```
+python setup.py sdist bdist_wheel
+twine upload dist/*
+rm build/ dist/ -rf
+```
+
+Remember you can only do this **once per version number**.
