@@ -1,6 +1,0 @@
--e git+https://github.com/MichaelClerx/bnglonlat.git#egg=bnglonlat
-matplotlib
-numpy
-scipy
-zipfile-deflate64
--e git+https://github.com/pints-team/pints.git#egg=pints

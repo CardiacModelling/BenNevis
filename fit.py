@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+#
+# Fitting example.
+#
+# TODO: This will be moved to a jupyter notebook
+# pip install -e git+https://github.com/pints-team/pints.git#egg=pints
+#
+#
 import os
 import sys
 
@@ -8,7 +15,7 @@ import pints
 import nevis
 
 # Load height data, create (or load cached) spline
-nevis.howdy('Local')
+nevis.howdy()
 nevis.gb(9 if '-debug' in sys.argv else None)
 #f = nevis.spline()
 f = nevis.linear_interpolant()
