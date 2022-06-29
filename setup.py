@@ -30,7 +30,7 @@ setup(
     version=version,
 
     # Description
-    description=('Presents the landscape of Great Britain as a test bed for'
+    description=('Presents the landscape of Great Britain as a testbed for'
                  ' optimisation and sampling methods.'),
     long_description=readme,
     long_description_content_type='text/markdown',
