@@ -1,6 +1,7 @@
 # Where's Ben Nevis?
 
-This repository contains the source code for the Python module `nevis`: a fun(?) project that presents the landscape of Great Britain (GB) as a test bed for numerical optimisation or sampling methods.
+This repository contains the source code for the Python module `nevis`.
+This is part of a fun(?) project called "Where's Ben Nevis" which presents the landscape of Great Britain (GB) as a test bed for numerical optimisation and sampling methods.
 
 ## Installation
 
