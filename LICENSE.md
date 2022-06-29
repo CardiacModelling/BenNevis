@@ -1,3 +1,5 @@
+# "Where is Ben Nevis" is licensed under a BSD 3-Clause License
+
 BSD 3-Clause License
 
 Copyright (c) 2021-2022, University of Nottingham
@@ -29,19 +31,21 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Hills database
-==============
-This project includes a file (hills.zip) that is derived from "The Database of
-British and Irish Hills", which is licensed under a "Creative Commons
-Attribution 4.0 International Licence".
+## Hills database
+
+"Where is Ben Nevis" includes a file (hills.zip) that is derived from "The 
+Database of British and Irish Hills", which is licensed under a "Creative 
+Commons Attribution 4.0 International Licence".
 For the database, see http://www.hills-database.co.uk
 For its license, see: https://creativecommons.org/licenses/by/4.0/
 
 
-OS Terrain 50
-=============
-When run, this code may download the OS Terrain 50 data set made available by
-the UK's Ordnance Survey, which is licensed under the "Open Government License
-for public section information, version 3".
-For the website, see: https://www.ordnancesurvey.co.uk/business-government/products/terrain-50
-For its license, see: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+## OS Terrain 50
+
+When run, "Where is Ben Nevis" code may download the OS Terrain 50 data set 
+made available by the UK's Ordnance Survey, which is licensed under the "Open
+Government License for public section information, version 3".
+For the website, see: 
+ https://www.ordnancesurvey.co.uk/business-government/products/terrain-50
+For its license, see: 
+ https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/

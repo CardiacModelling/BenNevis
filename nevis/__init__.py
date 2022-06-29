@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Main module for Where's Ben Nevis (it's in Scotland).
+Main module for Where is Ben Nevis (it's in Scotland).
 """
 
 #
@@ -58,9 +58,9 @@ from ._bng import (    # noqa
     pub,
     squares,
 )
-from ._os50 import (    # noqa
+from ._os_terrain_50 import (    # noqa
     DataNotFoundError,
-    download_os50,
+    download_os_terrain_50,
     gb,
     spacing,
 )

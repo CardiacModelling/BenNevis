@@ -37,7 +37,7 @@ setup(
 
     # Author and license
     license='BSD 3-clause license',
-    author='The Where\'s Ben Nevis team',
+    author='The Where Is Ben Nevis team',
     author_email='michael.clerx@nottingham.ac.uk',
 
     # Project URLs (only first is required, rest is for PyPI)
