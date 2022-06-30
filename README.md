@@ -52,7 +52,7 @@ This should create a file (in your working directory) called `gb-small.png`:
 
 ## Usage
 
-Detailed usage examples will eventually be provided in the [examples](https://github.com/CardiacModelling/BenNevis/tree/main/examples) directory.
+Detailed usage examples will eventually be provided in the [examples](https://github.com/CardiacModelling/BenNevis/blob/main/examples/README.md) directory.
 For the time being, please see [fit.py](https://github.com/CardiacModelling/BenNevis/blob/main/fit.py) for an example.
 
 An example of its output is given below:
