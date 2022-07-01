@@ -1,7 +1,7 @@
 # Where is Ben Nevis?
 
 "Where is Ben Nevis" is a fun(?) project which presents the landscape of Great Britain (GB) as a testbed for numerical optimisation and sampling methods.
-Its main component is a Python module called `nevis`, which can download height data from the Ordnance Survey, process it to make it more suitable for optimisation, and provide interpolating functions so that it can be treated as a continuous (but not smooth) real-valued function.
+Its main component is a Python module called `nevis` which can download height data from the Ordnance Survey, process it to make it more suitable for optimisation, and provide interpolating functions so that it can be treated as a continuous (but not smooth) real-valued function.
 
 ## Installation
 
@@ -21,16 +21,17 @@ This will make conversion from points in the data set to longitude and lattitude
 Developers may wish to skip PyPI installation, clone the [GitHub repository](https://github.com/CardiacModelling/BenNevis), and install from there instead.
 Instructions for this are provided in [CONTRIBUTING.md](https://github.com/CardiacModelling/BenNevis/blob/main/CONTRIBUTING.md).
 
-Next, the "OS Terrain 50" data set needs to be downloaded from from the Ordnance Survey website (see the "Data set" section below).
-This is achieved using:
+After installing the module, the "OS Terrain 50" data set needs to be downloaded from from the Ordnance Survey website (see the "Data set" section below).
+This can be achieved using:
 ```
 import nevis
 nevis.download_os_terrain_50()
 ```
-By default, the heights data is installed into `~/nevis-data`, for example `/home/michael/nevis-data` on a Linux system or `C:\Users\michael\nevis-data` on Windows.
+By default, the heights data is installed into `~/nevis-data`.
+For example `/home/michael/nevis-data` on a Linux system or `C:\Users\michael\nevis-data` on Windows.
 This installation path can be changed by specifying an alternative directory in the environment variable `NEVIS_PATH` before running `download_os_terrain_50()`.
 
-Note that OS Terrain 50 is not part of `nevis` or "Where is Ben Nevis", and comes with its own license.
+Note that OS Terrain 50 is not part of `nevis` or "Where is Ben Nevis" and comes with its own license.
 See [LICENSE.md](https://github.com/CardiacModelling/BenNevis/blob/main/LICENSE.md) for details.
 
 To check that the installation was succesfull, you can plot a height map of GB:
