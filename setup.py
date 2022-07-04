@@ -87,4 +87,7 @@ setup(
             'pillow',           # To check generated image sizes (PIL)
         ],
     },
+
+    # Python version
+    python_requires='>=3.6',
 )
