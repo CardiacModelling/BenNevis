@@ -8,8 +8,6 @@ Provides plotting methods.
 # Inspired by
 # https://scipython.com/blog/processing-uk-ordnance-survey-terrain-data/
 #
-import os
-import tempfile
 import warnings
 
 import matplotlib.colors
