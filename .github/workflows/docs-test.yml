@@ -1,0 +1,36 @@
+name: Doctest
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    # Run workflow when PR is changed, or when changed from draft to ready
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - '**'
+
+jobs:
+
+  build-and-test:
+    name: Docs
+    runs-on: ubuntu-latest
+
+    # Skip job if it's a draft PR
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: install pints
+        run: |
+          python --version
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install .[dev]
+
+      - name: run doctest
+        run: |
+          python nevis/tests/docs.py

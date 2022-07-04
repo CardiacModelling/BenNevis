@@ -1,0 +1,5 @@
+# Extra requirements for readthedocs.io
+# Scipy is mentioned here because pip is better at installing it than setup.py
+scipy
+guzzle-sphinx-theme
+sphinx>=1.5, !=1.7.3
