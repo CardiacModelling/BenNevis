@@ -34,6 +34,16 @@ The order in which the classes and methods appear here is specified by the `.rst
 At the moment, no unit tests are implemented.
 (Continuous integration testing [would require the data to be kept on github](https://github.com/CardiacModelling/BenNevis/issues/56), which I haven't explored.)
 
+### Unit testing
+
+When implemented, will use the `unittest` module.
+Tests are stored in the `nevis.tests` module.
+To run, use
+
+```
+python -m unittest
+```
+
 ### Style testing
 
 Use `flake8`, or `flake8 -j4` to use up to 4 cores.
