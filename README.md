@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/nevis/badge/?version=latest)](https://nevis.readthedocs.io/en/latest/?badge=latest)
+
 # Where is Ben Nevis?
 
 "Where is Ben Nevis" is a fun(?) project which presents the landscape of Great Britain (GB) as a testbed for numerical optimisation and sampling methods.
