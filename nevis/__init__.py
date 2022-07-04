@@ -75,23 +75,9 @@ from ._plot import (    # noqa
 )
 from ._util import (    # noqa
     Timer,
+    howdy,
+    print_result,
 )
-
-
-#
-# Version-related methods
-#
-def howdy(name='Local'):
-    """ Say hi the old fashioned way. """
-    print('')
-    print('                |>          ')
-    print(' Starting Ben   |   Nevis   ')
-    print('               / \    ' + name)
-    print('            /\/---\     ' + __version__)
-    print('           /---    \/\      ')
-    print('        /\/   /\   /  \     ')
-    print('     /\/  \  /  \_/    \    ')
-    print('    /      \/           \   ')
 
 
 #

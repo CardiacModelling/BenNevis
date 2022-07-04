@@ -3,6 +3,8 @@
 Provides utility methods (i.e. methods not directly related to ``nevis``).
 """
 import timeit
+from ._nevis_version import __version__
+from ._bng import Coords, Hill
 
 
 class Timer(object):
@@ -17,6 +19,7 @@ class Timer(object):
         print(timer.format(timer.time()))
 
     """
+
     def __init__(self, output=None):
         self._start = timeit.default_timer()
         self._methods = {}
@@ -61,3 +64,51 @@ class Timer(object):
         """
         return timeit.default_timer() - self._start
 
+
+#
+# Version-related methods
+#
+def howdy(name='Local'):
+    """ Say hi the old fashioned way. """
+    print('')
+    print('                |>          ')
+    print(' Starting Ben   |   Nevis   ')
+    print('               / \    ' + name)
+    print('            /\/---\     ' + __version__)
+    print('           /---    \/\      ')
+    print('        /\/   /\   /  \     ')
+    print('     /\/  \  /  \_/    \    ')
+    print('    /      \/           \   ')
+
+
+def print_result(x, y, z):
+    """
+    Print information about an optimization result.
+
+    Arguments:
+
+    ``x``
+        The x-coordinate of the result.
+    ``y``
+        The y-coordinate of the result.
+    ``z``
+        The z-coordinate of the result.
+    """
+
+    coords = Coords(gridx=x, gridy=y)
+    hill, distance = Hill.nearest(coords)
+    print('')
+    print('Congratulations!' if distance < 100 else (
+        'Good job!' if distance < 1000 else 'Interesting!'))
+    print(f'You landed at an altitude of {round(z)}m.')
+    print(f'  {coords.opentopomap}')
+    dm = (
+        f'{round(distance)}m' if distance < 1000
+        else f'{round(distance / 1000, 1)}km'
+    )
+    print(f'You are {dm} from the nearest named hill top, "{hill.name}",')
+    print(f'  ranked the {hill.ranked} heighest in GB.')
+    photo = hill.photo()
+    if photo:
+        print('  ' + photo)
+    print('')
