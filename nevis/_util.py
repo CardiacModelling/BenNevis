@@ -83,7 +83,7 @@ def howdy(name='Local'):
 
 def print_result(x, y, z):
     """
-    Print information about an optimization result.
+    Print information about an optimisation result.
 
     Arguments:
 
@@ -97,7 +97,6 @@ def print_result(x, y, z):
 
     coords = Coords(gridx=x, gridy=y)
     hill, distance = Hill.nearest(coords)
-    print('')
     print('Congratulations!' if distance < 100 else (
         'Good job!' if distance < 1000 else 'Interesting!'))
     print(f'You landed at an altitude of {round(z)}m.')
@@ -111,4 +110,3 @@ def print_result(x, y, z):
     photo = hill.photo()
     if photo:
         print('  ' + photo)
-    print('')

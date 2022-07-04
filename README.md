@@ -132,7 +132,7 @@ A full list follows below:
   - `howdy` Prints some old-school ascii art including the version number.
   - `Timer` Times and formats intervals.
   - `write_test_figure` Loads the data and writes a test figure to disk.
-  - `print_result` Print information about an optimization result.
+  - `print_result` Print information about an optimisation result.
 
 ## Data set
 

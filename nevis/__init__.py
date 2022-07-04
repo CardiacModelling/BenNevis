@@ -74,9 +74,9 @@ from ._plot import (    # noqa
     save_plot,
 )
 from ._util import (    # noqa
-    Timer,
     howdy,
     print_result,
+    Timer,
 )
 
 
