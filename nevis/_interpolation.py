@@ -68,7 +68,7 @@ class linear_interpolant(object):
         return np.where(f1 == f2, f1, (y2 - y) * f1 + (y - y1) * f2)
 
 
-def spline(silent=False):
+def spline(verbose=False):
     """
     Returns a spline interpolation over the full GB data set.
 
@@ -89,18 +89,18 @@ def spline(silent=False):
     s = None
     cached = os.path.join(nevis._DIR_DATA, 'spline')
     if os.path.isfile(cached):
-        if not silent:
+        if verbose:
             print('Loading cached spline...')
         try:
             with open(cached, 'rb') as f:
                 s = pickle.load(f)
         except Exception:
-            if not silent:
+            if verbose:
                 print('Loading failed.')
 
     # Create new spline
     if s is None:
-        if not silent:
+        if verbose:
             print('Reticulating splines...')
         width, height = nevis.dimensions()
         ny, nx = heights.shape
@@ -111,16 +111,16 @@ def spline(silent=False):
             np.linspace(0, width, nx, endpoint=False) + c,
             heights,
         )
-        if not silent:
+        if verbose:
             print(f'Completed in {t.format()}')
 
         # Cache to disk
-        if not silent:
+        if verbose:
             print('Caching spline to disk...')
             t = nevis.Timer()
         with open(cached, 'wb') as f:
             pickle.dump(s, f)
-        if not silent:
+        if verbose:
             print(f'Completed in {t.format()}')
 
     return lambda x, y: s(y, x)[0][0]

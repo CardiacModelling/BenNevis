@@ -23,7 +23,7 @@ r2 = r // 2             # Height is taken at center of grid square
 # Get interpolants
 name = 'interpolation'
 f = nevis.linear_interpolant()
-g = nevis.spline()
+g = nevis.spline(verbose=True)
 
 #
 # Squares and objects to draw on the maps
@@ -181,7 +181,7 @@ if not os.path.isdir(root):
 cmap = matplotlib.cm.get_cmap('tab10', 10)
 fig, ax, data, ff = nevis.plot(
     downsampling=27,
-    silent=True)
+    headless=True)
 for ii, sq in enumerate(squares):
     square, line = sq
     x0, x1, y0, y1 = square
@@ -206,7 +206,7 @@ for ii, sq in enumerate(squares):
         labels=labels,
         downsampling=1,
         small_grid=True,
-        silent=True)
+        headless=True)
     for jj, line in enumerate(lines):
         x0, x1, y0, y1 = line
         a0, b0 = ff(x0, y0)
@@ -229,7 +229,8 @@ for ii, sq in enumerate(squares):
     for jj, line in enumerate(lines):
         x0, x1, y0, y1 = line
         p0, p1 = nevis.Coords(x0, y0), nevis.Coords(x1, y1)
-        fig, ax, q0, q1 = nevis.plot_line((f, g), p0, p1, figsize=(14, 10))
+        fig, ax, q0, q1 = nevis.plot_line(
+            (f, g), p0, p1, figsize=(14, 10), headless=True)
         ax.minorticks_on()
         ax.grid(which='major')
         ax.grid(which='minor', color='#eeeeee')

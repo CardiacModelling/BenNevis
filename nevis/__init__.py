@@ -99,10 +99,10 @@ def howdy(name='Local'):
 #
 def write_test_figure(path='gb-small.png'):
     """
-    Create a write a test figure.
+    Creates and writes a test figure.
     """
     gb()
     labels = {'Ben Nevis': ben(), 'Holme Fen': fen()}
     fig, ax, heights, g = plot(labels=labels, downsampling=32)
-    save_plot(path, fig, silent=False)
+    save_plot(path, fig, verbose=True)
 
