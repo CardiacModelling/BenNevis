@@ -103,7 +103,7 @@ fig, ax, data, g = nevis.plot(
     trajectory=trajectory,
     points=points,
     downsampling=downsampling,
-    silent=True)
+    headless=True)
 path = os.path.join(root, 'local-map-full.png')
 print()
 print(f'Saving figure to {path}.')
@@ -126,7 +126,7 @@ fig, ax, data, g = nevis.plot(
     trajectory=trajectory,
     points=points,
     downsampling=downsampling,
-    silent=True)
+    headless=True)
 path = os.path.join(root, 'local-map-zoom.png')
 print(f'Saving figure to {path}.')
 fig.savefig(path)

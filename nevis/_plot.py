@@ -21,14 +21,14 @@ import nevis
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
          scale_bar=True, big_grid=False, small_grid=False, downsampling=27,
-         silent=True, headless=True):
+         headless=False, verbose=False):
     """
-    Creates a plot of the 2D elevation data in ``heights``, downsampled with a
-    factor ``downsampling``.
+    Creates a plot of the 2D elevation data in ``heights``.
 
-    Note that this method assumes you will want to write the figure to disk
-    with :meth:`fig.savefig()`. If you want to display it using ``pyplot``,
-    set ``headless=False``.
+    By default, this method uses ``pyplot`` to create the figure, which can
+    have the side-effect of instantiating a back-end for maptlotlib.
+    Alternatively, the plot can be created in "headless" mode, by setting
+    ``headless=True``.
 
     Arguments:
 
@@ -53,16 +53,17 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         Show the 2-letter 2-number grid squares (10km by 10km)
     ``downsampling``
         Set to any integer to set the amount of downsampling (the ratio of data
-        points to pixels in either direction).
-    ``silent``
-        Set to ``True`` to stop writing a status to stdout.
+        points to pixels in either direction). The default is 27, which creates
+        a reasonable plot for the full GB dataset.
     ``headless``
-        Set to ``False`` to create the figure using pyplot.
+        Set to ``True`` to create the figure without using pyplot.
+    ``verbose``
+        Set to ``True`` to print updates to ``stdout`` while plotting.
 
     Returns a tuple ``(fig, ax, heights, g)`` where ``fig`` is the created
     figure, ``ax`` is the axes the image is plotted on, and ``heights`` is the
-    downsampled numpy array. The final entry ``g`` is a function that converts
-    coordinates in meters to coordinates on the map axes.
+    (possibly downsampled) numpy array. The final entry ``g`` is a function
+    that converts coordinates in meters to coordinates on the map axes.
     """
     # Current array shape
     heights = nevis.gb()
@@ -71,13 +72,13 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     # Get extreme points (before any downsampling!)
     vmin = np.min(heights)
     vmax = np.max(heights)
-    if not silent:
+    if verbose:
         print(f'Lowest point: {vmin}')
         print(f'Highest point: {vmax}')
 
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).
     if downsampling > 1:
-        if not silent:
+        if verbose:
             print(f'Downsampling with factor {downsampling}')
         heights = heights[::downsampling, ::downsampling]
         ny, nx = heights.shape
@@ -114,7 +115,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         return x, y
 
     # Plot
-    if not silent:
+    if verbose:
         print('Plotting...')
 
     # Create colormap
@@ -144,7 +145,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     dpi = 100
     fw = nx / dpi
     fh = ny / dpi
-    if not silent:
+    if verbose:
         print(f'Figure dimensions: {fw}" by {fh}" at {dpi} dpi')
         print(f'Should result in {nx} by {ny} pixels.')
 
@@ -269,7 +270,8 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
 
 
 def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
-              padding=0.25, evaluations=400, figsize=(8, 5), headless=True):
+              padding=0.25, evaluations=400, figsize=(8, 5), headless=False,
+              verbose=False):
     """
     Draws a line between two points and evaluates a function along it.
 
@@ -296,7 +298,9 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     ``figsize``
         The default figure size
     ``headless``
-        Set to ``False`` to create the figure using pyplot.
+        Set to ``True`` to create the figure without using pyplot.
+    ``verbose``
+        Set to ``True`` to print updates to ``stdout`` while plotting.
 
     Returns a tuple ``(fig, ax, p1, p2)`` where ``fig`` is the generated
     figure, ``ax`` is the axes object within that figure, and ``p1`` and ``p2``
@@ -353,14 +357,14 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     return fig, ax, nevis.Coords(*p[0]), nevis.Coords(*p[-1])
 
 
-def save_plot(path, fig, heights=None, silent=True):
+def save_plot(path, fig, heights=None, verbose=False):
     """
     Stores the given figure using ``fig.savefig(path)``.
 
     If ``heights`` is given and ``PIL`` (pillow) is installed it will also
     check that the image dimensions (in pixels) equal the size of ``heights``.
     """
-    if not silent:
+    if verbose:
         print(f'Writing figure to {path}')
     fig.savefig(path)
 
@@ -376,13 +380,13 @@ def save_plot(path, fig, heights=None, silent=True):
     PIL.Image.MAX_IMAGE_PIXELS = None
 
     # Open image, get file size
-    if not silent:
+    if verbose:
         print('Checking size of generated image')
     with PIL.Image.open(path) as im:
         ix, iy = im.size
 
     if (iy, ix) == heights.shape:
-        if not silent:
+        if verbose:
             print('Image size OK')
     else:
         warnings.warn(

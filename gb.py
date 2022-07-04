@@ -76,11 +76,12 @@ fig, ax, heights, g = nevis.plot(
     big_grid=big_grid,
     small_grid=small_grid,
     downsampling=downsampling,
-    silent=False,
+    headles=True,
+    verbose=True,
 )
 
 # Save plot, and check resulting image dimensions
 if not os.path.isdir('results'):
     os.makedirs('results')
-nevis.save_plot('results/gb.png', fig, heights, silent=False)
+nevis.save_plot('results/gb.png', fig, heights, verbose=True)
 
