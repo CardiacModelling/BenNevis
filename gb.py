@@ -76,7 +76,7 @@ fig, ax, heights, g = nevis.plot(
     big_grid=big_grid,
     small_grid=small_grid,
     downsampling=downsampling,
-    headles=True,
+    headless=True,
     verbose=True,
 )
 
