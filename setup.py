@@ -43,9 +43,9 @@ setup(
     # Project URLs (only first is required, rest is for PyPI)
     url='https://github.com/CardiacModelling/BenNevis',
     project_urls={
-        'Bug Tracker': 'https://github.com/CardiacModelling/BenNevis/issues',
-        #'Documentation': 'http://docs.myokit.org',
-        'Source Code': 'https://github.com/CardiacModelling/BenNevis',
+        'Bug Tracker': 'https://github.com/CardiacModelling/BenNevis/issues/',
+        'Documentation': 'https://nevis.readthedocs.io/',
+        'Source Code': 'https://github.com/CardiacModelling/BenNevis/',
     },
 
     # Classifiers for pypi
@@ -80,7 +80,7 @@ setup(
         'dev': [
             #'coverage',                 # Coverage checking
             'flake8>=3',                # Style checking
-            #'sphinx>=1.5, !=1.7.3',     # Doc generation
+            'sphinx>=1.5, !=1.7.3',     # Doc generation
         ],
         'extras': [
             'convertbng',       # Accurate version of bnglonlat

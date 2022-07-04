@@ -1,0 +1,9 @@
+# Requirements for readthedocs.io
+bnglonlat
+matplotlib>=1.5
+numpy
+scipy
+setuptools
+zipfile-deflate64
+guzzle-sphinx-theme
+sphinx>=1.5, !=1.7.3
