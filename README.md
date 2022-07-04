@@ -101,37 +101,7 @@ You are 31m from the nearest named hill top, "Ben Macdui",
 
 ### API Documentation
 
-Proper API documentation is still on the [to-do list](https://github.com/CardiacModelling/BenNevis/issues/47).
-However, the API is quite small.
-The main functions are `linear_interpolant` and `plot`.
-
-A full list follows below:
-
-- British national grid utilities (see `_bng.py`):
-  - `ben` Returns grid coordinates for Ben Nevis.
-  - `Coords` Represents grid coordinates and can convert to various forms.
-  - `dimensions` Returns the physical dimensions (in meters) of the grid.
-  - `fen` Returns grid coordinates for Holme Fen, the lowest point (inland).
-  - `Hill` Represents a hill from the hills database.
-  - `pub` Returns grid coordinates for a random pub, selected from a very short list.
-  - `squares` Returns the coordinates of major BNG squares.
-- OS Terrain 50 loading methods (see `_os_terrain_50.py`):
-  - `DataNotFoundError` An error raised if the data was not downloaded or can't be found.
-  - `download_os_terrain_50` The method to download and unpack the data. Only needs to be run once.
-  - `gb` Loads and returns the heights data for GB.
-  - `spacing` returns the physical distance (in meters) between the points returned by `gb`.
-- Interpolants (see `_interpolation.py`)
-  - `linear_interpolant` Returns a linear interpolant over the GB height data.
-  - `spline` Returns a spline defined over the GB height data.
-- Plotting (see `_plot.py`)
-  - `plot` Creates a plot of a map, with optional labels etc.
-  - `plot_line` Creates a plot of the height profile between two points.
-  - `png_bytes` Turns a matplotlib figure into a `bytes` string.
-  - `save_plot` Stores a plot and checks its size. Less paranoid people can use `fig.savefig()` instead.
-- Various (see `_util.py` and `__init__.py`)
-  - `howdy` Prints some old-school ascii art including the version number.
-  - `Timer` Times and formats intervals.
-  - `write_test_figure` Loads the data and writes a test figure to disk.
+Full API documentation is provided at [https://nevis.readthedocs.io](https://nevis.readthedocs.io).
 
 ## Data set
 
