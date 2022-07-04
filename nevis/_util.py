@@ -3,8 +3,8 @@
 Provides utility methods (i.e. methods not directly related to ``nevis``).
 """
 import timeit
-from ._nevis_version import __version__
-from ._bng import Coords, Hill
+
+import nevis
 
 
 class Timer(object):
@@ -74,7 +74,7 @@ def howdy(name='Local'):
     print('                |>          ')
     print(' Starting Ben   |   Nevis   ')
     print('               / \    ' + name)
-    print('            /\/---\     ' + __version__)
+    print('            /\/---\     ' + nevis.__version__)
     print('           /---    \/\      ')
     print('        /\/   /\   /  \     ')
     print('     /\/  \  /  \_/    \    ')
@@ -95,8 +95,8 @@ def print_result(x, y, z):
         The z-coordinate of the result.
     """
 
-    coords = Coords(gridx=x, gridy=y)
-    hill, distance = Hill.nearest(coords)
+    coords = nevis.Coords(gridx=x, gridy=y)
+    hill, distance = nevis.Hill.nearest(coords)
     print('Congratulations!' if distance < 100 else (
         'Good job!' if distance < 1000 else 'Interesting!'))
     print(f'You landed at an altitude of {round(z)}m.')
