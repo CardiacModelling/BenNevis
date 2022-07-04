@@ -8,8 +8,6 @@ Provides plotting methods.
 # Inspired by
 # https://scipython.com/blog/processing-uk-ordnance-survey-terrain-data/
 #
-import os
-import tempfile
 import warnings
 
 import matplotlib.colors
@@ -392,17 +390,4 @@ def save_plot(path, fig, heights=None, verbose=False):
         warnings.warn(
             f'Unexpected image size: width {ix}, height {iy}, expecting'
             f' {heights.shape}.')
-
-
-def png_bytes(fig):
-    """
-    Converts a matplotlib figure to a ``bytes`` string containing its ``.PNG``
-    representation.
-    """
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, 'result.png')
-        fig.savefig(path)
-        del(fig)
-        with open(path, 'rb') as f:
-            return f.read()
 

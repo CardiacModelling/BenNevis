@@ -71,7 +71,6 @@ from ._interpolation import (   # noqa
 from ._plot import (    # noqa
     plot,
     plot_line,
-    png_bytes,
     save_plot,
 )
 from ._util import (    # noqa
