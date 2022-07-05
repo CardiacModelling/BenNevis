@@ -19,7 +19,7 @@ import nevis
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
          scale_bar=True, big_grid=False, small_grid=False, downsampling=27,
-         headless=False, verbose=False):
+         upsampling=None, headless=False, verbose=False):
     """
     Creates a plot of the 2D elevation data in ``heights``.
 
@@ -53,6 +53,12 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         Set to any integer to set the amount of downsampling (the ratio of data
         points to pixels in either direction). The default is 27, which creates
         a reasonable plot for the full GB dataset.
+    ``upsampling``
+        Set to any integer to set the amount of upsampling (the ratio of
+        upsampled data points to original ones in either direction) using
+        linear interpolation. When not None, ``downsampling`` is overwritten
+        to 1. ``boundaries`` must be set for upsampling to take effect. Note
+        that this might take a long time, depending on size of the boundaries.
     ``headless``
         Set to ``True`` to create the figure without using pyplot.
     ``verbose``
@@ -74,6 +80,17 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         print(f'Lowest point: {vmin}')
         print(f'Highest point: {vmax}')
 
+    # Check upsampling requirements
+    if upsampling is not None:
+        if verbose:
+            print(
+                f'Upsampling with factor {upsampling}, '
+                'downsampling is set to 1'
+            )
+        if boundaries is None:
+            print('Warning: Upsampling requires boundaries to be set.')
+        downsampling = 1
+
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).
     if downsampling > 1:
         if verbose:
@@ -92,15 +109,35 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         ylo = max(0, int(ylo / d_org[1] * ny))
         xhi = 1 + min(nx, int(np.ceil(xhi / d_org[0] * nx)))
         yhi = 1 + min(ny, int(np.ceil(yhi / d_org[1] * ny)))
-        heights = heights[ylo:yhi, xlo:xhi]
 
-        # Adjust array size
-        ny, nx = heights.shape
+        if upsampling is not None:
+            # Evaluate upsampled data using interpolant
+            r = nevis.spacing()
+            xs = (np.linspace(xlo, xhi - 1, upsampling * (xhi - xlo))
+                  + 0.5) * r
+            ys = (np.linspace(ylo, yhi - 1, upsampling * (yhi - ylo))
+                  + 0.5) * r
+            xv, yv = np.meshgrid(xs, ys)
+            f = np.vectorize(nevis.linear_interpolant())
+            heights = f(xv, yv)
 
-        # Set new dimensions and origin (bottom left)
-        r = nevis.spacing() * downsampling
-        d_new = np.array([nx * r, ny * r])
-        offset = np.array([xlo * r, ylo * r])
+            # Adjust array size
+            ny, nx = heights.shape
+
+            # Set new dimensions and origin (bottom left)
+            d_new = np.array([nx * r / upsampling, ny * r / upsampling])
+            offset = np.array([xlo * r, ylo * r])
+
+        else:
+            heights = heights[ylo:yhi, xlo:xhi]
+
+            # Adjust array size
+            ny, nx = heights.shape
+
+            # Set new dimensions and origin (bottom left)
+            r = nevis.spacing() * downsampling
+            d_new = np.array([nx * r, ny * r])
+            offset = np.array([xlo * r, ylo * r])
 
     def meters2indices(x, y):
         """ Convert meters to array indices (which equal image coordinates) """
