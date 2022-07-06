@@ -76,7 +76,6 @@ x1, f1 = opt.run()
 
 # Get final result and some comparison points
 x, y = x1
-z = -int(round(float(f1)))
 c = nevis.Coords(gridx=x, gridy=y)
 h, d = nevis.Hill.nearest(c)
 
@@ -103,7 +102,7 @@ fig, ax, data, g = nevis.plot(
     trajectory=trajectory,
     points=points,
     downsampling=downsampling,
-    silent=True)
+    headless=True)
 path = os.path.join(root, 'local-map-full.png')
 print()
 print(f'Saving figure to {path}.')
@@ -126,7 +125,7 @@ fig, ax, data, g = nevis.plot(
     trajectory=trajectory,
     points=points,
     downsampling=downsampling,
-    silent=True)
+    headless=True)
 path = os.path.join(root, 'local-map-zoom.png')
 print(f'Saving figure to {path}.')
 fig.savefig(path)
@@ -142,17 +141,4 @@ fig.savefig(path)
 #
 # Print results
 #
-print()
-print('Congratulations!' if d < 100 else (
-      'Good job!' if d < 1000 else 'Interesting!'))
-print(f'You landed at an altitude of {z}m.')
-print(f'  {c.opentopomap}')
-
-dm = f'{round(d)}m' if d < 1000 else f'{round(d / 1000, 1)}km'
-print(f'You are {dm} from the nearest named hill top, "{h.name}",')
-print(f'  ranked the {h.ranked} heighest in GB.')
-p = h.photo()
-if p:
-    print('  ' + p)
-print()
-
+nevis.print_result(x, y, -float(f1))

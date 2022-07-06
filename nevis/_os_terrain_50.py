@@ -46,7 +46,7 @@ _heights = None
 
 
 class DataNotFoundError(RuntimeError):
-    """ Raised when the OS50 data is not found. """
+    """ Raised when the OS Terrain 50 data is not found. """
 
 
 def spacing():
@@ -72,8 +72,8 @@ def gb(downsampling=None):
         if not os.path.isfile(terrain_file_npy):
             raise DataNotFoundError(
                 f'OS Terrain 50 data not found in {nevis._DIR_DATA}.'
-                ' Please use nevis.download_os50() to download and process'
-                ' this data set.'
+                ' Please use nevis.download_os_terrain_50() to download and'
+                ' process this data set.'
             )
 
         # Load

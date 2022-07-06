@@ -71,28 +71,13 @@ from ._interpolation import (   # noqa
 from ._plot import (    # noqa
     plot,
     plot_line,
-    png_bytes,
     save_plot,
 )
 from ._util import (    # noqa
+    howdy,
+    print_result,
     Timer,
 )
-
-
-#
-# Version-related methods
-#
-def howdy(name='Local'):
-    """ Say hi the old fashioned way. """
-    print('')
-    print('                |>          ')
-    print(' Starting Ben   |   Nevis   ')
-    print('               / \    ' + name)
-    print('            /\/---\     ' + __version__)
-    print('           /---    \/\      ')
-    print('        /\/   /\   /  \     ')
-    print('     /\/  \  /  \_/    \    ')
-    print('    /      \/           \   ')
 
 
 #
@@ -100,10 +85,10 @@ def howdy(name='Local'):
 #
 def write_test_figure(path='gb-small.png'):
     """
-    Create a write a test figure.
+    Creates and writes a test figure.
     """
     gb()
     labels = {'Ben Nevis': ben(), 'Holme Fen': fen()}
     fig, ax, heights, g = plot(labels=labels, downsampling=32)
-    save_plot(path, fig, silent=False)
+    save_plot(path, fig, verbose=True)
 

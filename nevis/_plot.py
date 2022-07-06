@@ -8,8 +8,6 @@ Provides plotting methods.
 # Inspired by
 # https://scipython.com/blog/processing-uk-ordnance-survey-terrain-data/
 #
-import os
-import tempfile
 import warnings
 
 import matplotlib.colors
@@ -21,14 +19,14 @@ import nevis
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
          scale_bar=True, big_grid=False, small_grid=False, downsampling=27,
-         silent=True, headless=True):
+         upsampling=None, headless=False, verbose=False):
     """
-    Creates a plot of the 2D elevation data in ``heights``, downsampled with a
-    factor ``downsampling``.
+    Creates a plot of the 2D elevation data in ``heights``.
 
-    Note that this method assumes you will want to write the figure to disk
-    with :meth:`fig.savefig()`. If you want to display it using ``pyplot``,
-    set ``headless=False``.
+    By default, this method uses ``pyplot`` to create the figure, which can
+    have the side-effect of instantiating a back-end for maptlotlib.
+    Alternatively, the plot can be created in "headless" mode, by setting
+    ``headless=True``.
 
     Arguments:
 
@@ -53,16 +51,23 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         Show the 2-letter 2-number grid squares (10km by 10km)
     ``downsampling``
         Set to any integer to set the amount of downsampling (the ratio of data
-        points to pixels in either direction).
-    ``silent``
-        Set to ``True`` to stop writing a status to stdout.
+        points to pixels in either direction). The default is 27, which creates
+        a reasonable plot for the full GB dataset.
+    ``upsampling``
+        Set to any integer to set the amount of upsampling (the ratio of
+        upsampled data points to original ones in either direction) using
+        linear interpolation. When not None, ``downsampling`` is overwritten
+        to 1. ``boundaries`` must be set for upsampling to take effect. Note
+        that this might take a long time, depending on size of the boundaries.
     ``headless``
-        Set to ``False`` to create the figure using pyplot.
+        Set to ``True`` to create the figure without using pyplot.
+    ``verbose``
+        Set to ``True`` to print updates to ``stdout`` while plotting.
 
     Returns a tuple ``(fig, ax, heights, g)`` where ``fig`` is the created
     figure, ``ax`` is the axes the image is plotted on, and ``heights`` is the
-    downsampled numpy array. The final entry ``g`` is a function that converts
-    coordinates in meters to coordinates on the map axes.
+    (possibly downsampled) numpy array. The final entry ``g`` is a function
+    that converts coordinates in meters to coordinates on the map axes.
     """
     # Current array shape
     heights = nevis.gb()
@@ -71,13 +76,24 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     # Get extreme points (before any downsampling!)
     vmin = np.min(heights)
     vmax = np.max(heights)
-    if not silent:
+    if verbose:
         print(f'Lowest point: {vmin}')
         print(f'Highest point: {vmax}')
 
+    # Check upsampling requirements
+    if upsampling is not None:
+        if verbose:
+            print(
+                f'Upsampling with factor {upsampling}, '
+                'downsampling is set to 1'
+            )
+        if boundaries is None:
+            print('Warning: Upsampling requires boundaries to be set.')
+        downsampling = 1
+
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).
     if downsampling > 1:
-        if not silent:
+        if verbose:
             print(f'Downsampling with factor {downsampling}')
         heights = heights[::downsampling, ::downsampling]
         ny, nx = heights.shape
@@ -93,15 +109,35 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         ylo = max(0, int(ylo / d_org[1] * ny))
         xhi = 1 + min(nx, int(np.ceil(xhi / d_org[0] * nx)))
         yhi = 1 + min(ny, int(np.ceil(yhi / d_org[1] * ny)))
-        heights = heights[ylo:yhi, xlo:xhi]
 
-        # Adjust array size
-        ny, nx = heights.shape
+        if upsampling is not None:
+            # Evaluate upsampled data using interpolant
+            r = nevis.spacing()
+            xs = (np.linspace(xlo, xhi - 1, upsampling * (xhi - xlo))
+                  + 0.5) * r
+            ys = (np.linspace(ylo, yhi - 1, upsampling * (yhi - ylo))
+                  + 0.5) * r
+            xv, yv = np.meshgrid(xs, ys)
+            f = np.vectorize(nevis.linear_interpolant())
+            heights = f(xv, yv)
 
-        # Set new dimensions and origin (bottom left)
-        r = nevis.spacing() * downsampling
-        d_new = np.array([nx * r, ny * r])
-        offset = np.array([xlo * r, ylo * r])
+            # Adjust array size
+            ny, nx = heights.shape
+
+            # Set new dimensions and origin (bottom left)
+            d_new = np.array([nx * r / upsampling, ny * r / upsampling])
+            offset = np.array([xlo * r, ylo * r])
+
+        else:
+            heights = heights[ylo:yhi, xlo:xhi]
+
+            # Adjust array size
+            ny, nx = heights.shape
+
+            # Set new dimensions and origin (bottom left)
+            r = nevis.spacing() * downsampling
+            d_new = np.array([nx * r, ny * r])
+            offset = np.array([xlo * r, ylo * r])
 
     def meters2indices(x, y):
         """ Convert meters to array indices (which equal image coordinates) """
@@ -114,7 +150,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         return x, y
 
     # Plot
-    if not silent:
+    if verbose:
         print('Plotting...')
 
     # Create colormap
@@ -144,7 +180,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     dpi = 100
     fw = nx / dpi
     fh = ny / dpi
-    if not silent:
+    if verbose:
         print(f'Figure dimensions: {fw}" by {fh}" at {dpi} dpi')
         print(f'Should result in {nx} by {ny} pixels.')
 
@@ -269,7 +305,8 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
 
 
 def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
-              padding=0.25, evaluations=400, figsize=(8, 5), headless=True):
+              padding=0.25, evaluations=400, figsize=(8, 5), headless=False,
+              verbose=False):
     """
     Draws a line between two points and evaluates a function along it.
 
@@ -296,7 +333,9 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     ``figsize``
         The default figure size
     ``headless``
-        Set to ``False`` to create the figure using pyplot.
+        Set to ``True`` to create the figure without using pyplot.
+    ``verbose``
+        Set to ``True`` to print updates to ``stdout`` while plotting.
 
     Returns a tuple ``(fig, ax, p1, p2)`` where ``fig`` is the generated
     figure, ``ax`` is the axes object within that figure, and ``p1`` and ``p2``
@@ -353,14 +392,14 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     return fig, ax, nevis.Coords(*p[0]), nevis.Coords(*p[-1])
 
 
-def save_plot(path, fig, heights=None, silent=True):
+def save_plot(path, fig, heights=None, verbose=False):
     """
     Stores the given figure using ``fig.savefig(path)``.
 
     If ``heights`` is given and ``PIL`` (pillow) is installed it will also
     check that the image dimensions (in pixels) equal the size of ``heights``.
     """
-    if not silent:
+    if verbose:
         print(f'Writing figure to {path}')
     fig.savefig(path)
 
@@ -376,29 +415,16 @@ def save_plot(path, fig, heights=None, silent=True):
     PIL.Image.MAX_IMAGE_PIXELS = None
 
     # Open image, get file size
-    if not silent:
+    if verbose:
         print('Checking size of generated image')
     with PIL.Image.open(path) as im:
         ix, iy = im.size
 
     if (iy, ix) == heights.shape:
-        if not silent:
+        if verbose:
             print('Image size OK')
     else:
         warnings.warn(
             f'Unexpected image size: width {ix}, height {iy}, expecting'
             f' {heights.shape}.')
-
-
-def png_bytes(fig):
-    """
-    Converts a matplotlib figure to a ``bytes`` string containing its ``.PNG``
-    representation.
-    """
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, 'result.png')
-        fig.savefig(path)
-        del(fig)
-        with open(path, 'rb') as f:
-            return f.read()
 
