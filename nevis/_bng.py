@@ -97,6 +97,7 @@ class Coords(object):
         print(b.geograph)
 
     """
+
     def __init__(self, gridx=None, gridy=None, normx=None, normy=None):
         self._gridx = self._gridy = None
         self._normx = self._normy = None
@@ -492,3 +493,13 @@ Coords.pub = {
     'MacSorleys': Coords(gridx=258809, gridy=665079),
     'Sheffield tap': Coords(gridx=435847, gridy=387030),
 }
+
+
+def schiehallion():
+    """ Returns a tuple, the hill object of Schiehallion and the boundaries of
+    a neighborhood of it."""
+    hill = nevis.Hill.by_name('Schiehallion')
+    x, y = hill.coords.grid
+    b = 3e3
+    boundaries = [x - b * .7, x + b * 1.1, y - b * .55, y + b * .5]
+    return hill, boundaries

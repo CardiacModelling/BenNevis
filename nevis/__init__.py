@@ -56,6 +56,7 @@ from ._bng import (    # noqa
     fen,
     Hill,
     pub,
+    schiehallion,
     squares,
 )
 from ._os_terrain_50 import (    # noqa
