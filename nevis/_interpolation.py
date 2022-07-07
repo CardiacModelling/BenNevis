@@ -67,6 +67,27 @@ class linear_interpolant(object):
         # Final result
         return np.where(f1 == f2, f1, (y2 - y) * f1 + (y - y1) * f2)
 
+    def grad(self, x, y):
+        """
+        Returns the gradient of the linear interpolant at the given point.
+        """
+        ny, nx = self._heights.shape
+        x, y = x / self._resolution - 0.5, y / self._resolution - 0.5
+
+        # Find nearest grid points
+        # x1 (left), x2 (right), y1 (bottom), y2 (top).
+        x1 = np.minimum(nx - 2, np.maximum(0, int(x)))
+        y1 = np.minimum(ny - 2, np.maximum(0, int(y)))
+        x2 = x1 + 1
+        y2 = y1 + 1
+
+        # Heights at nearest grid points (subscripts are x_y)
+        h11 = self._heights[y1, x1]
+        h12 = self._heights[y2, x1]
+        h21 = self._heights[y1, x2]
+
+        return (h21 - h11) / self._resolution, (h12 - h11) / self._resolution
+
 
 def spline(verbose=False):
     """
