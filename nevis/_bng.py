@@ -496,8 +496,13 @@ Coords.pub = {
 
 
 def schiehallion():
-    """ Returns a tuple, the hill object of Schiehallion and the boundaries of
-    a neighborhood of it."""
+    """
+    Returns a tuple ``(hill, boundaries)`` containing the :class:`Hill` object 
+    for Schiehallion and boundaries ``(x_lower, x_upper, y_lower, y_upper)``
+    defining its neighbourhood.
+    
+    This can be used as an easier test problem for local methods.
+    """
     hill = nevis.Hill.by_name('Schiehallion')
     x, y = hill.coords.grid
     b = 3e3
