@@ -13,6 +13,7 @@ Alphabetical list:
 - :meth:`dimensions`
 - :meth:`fen`
 - :meth:`pub`
+- :meth:`schiehallion`
 - :meth:`squares`
 - :class:`Hill`
 
@@ -28,6 +29,8 @@ Coordinates
 .. autofunction:: fen
 
 .. autofunction:: pub
+
+.. autofunction:: schiehallion
 
 .. autofunction:: squares
 
