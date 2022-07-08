@@ -389,6 +389,8 @@ class Hill(object):
         """
         if not Hill._hills:
             Hill._load()
+        if rank < 1 or rank > len(Hill._hills):
+            raise ValueError(f'Rank outside of range: {rank}.')
         hill = Hill._hills[rank - 1]
         assert hill.rank == rank, 'Hills not ordered by rank'
         return hill
