@@ -68,7 +68,7 @@ class Timer(object):
 #
 # Version-related methods
 #
-def howdy(name='Local'):
+def howdy(name='version'):
     """ Say hi the old fashioned way. """
     print('')
     print('                |>          ')
