@@ -107,8 +107,8 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         # Select appropriate part of array
         xlo = max(0, int(xlo / d_org[0] * nx))
         ylo = max(0, int(ylo / d_org[1] * ny))
-        xhi = 1 + min(nx, int(np.ceil(xhi / d_org[0] * nx)))
-        yhi = 1 + min(ny, int(np.ceil(yhi / d_org[1] * ny)))
+        xhi = min(nx, int(np.ceil(xhi / d_org[0] * nx)))
+        yhi = min(ny, int(np.ceil(yhi / d_org[1] * ny)))
 
         if upsampling is not None:
             # Evaluate upsampled data using interpolant
@@ -221,7 +221,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
                         if r > 2 and r < ny - 2:
                             ax.axhline(r, color='w', lw=0.5)
                     q, r = meters2indices(x + 5000, y + 5000)
-                    if q > 20 and q < nx - 20 and r > 10 and r < ny - 10:
+                    if q > 10 and q < nx - 10 and r > 10 and r < ny - 10:
                         ax.text(q, r, sq + str(j) + str(i), color='w',
                                 ha='center', va='center', fontsize=10)
     elif big_grid:
