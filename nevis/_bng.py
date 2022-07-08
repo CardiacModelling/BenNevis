@@ -510,3 +510,18 @@ def schiehallion():
     b = 3e3
     boundaries = [x - b * .7, x + b * 1.1, y - b * .55, y + b * .5]
     return hill, boundaries
+
+
+def macdui():
+    """
+    Returns a tuple ``(hill, boundaries)`` containing the :class:`Hill` object
+    for Ben Macdui and boundaries ``(x_lower, x_upper, y_lower, y_upper)``
+    defining its neighbourhood, Cairngorms Mountains.
+
+    This can be used as an easier test problem for local methods.
+    """
+    hill = nevis.Hill.by_name('Ben Macdui')
+    x, y = hill.coords.grid
+    b = 8e3
+    boundaries = [x - b * 1.75, x + b * 2.5, y - b * 1.4, y + b * 1.9]
+    return hill, boundaries

@@ -55,6 +55,7 @@ from ._bng import (    # noqa
     dimensions,
     fen,
     Hill,
+    macdui,
     pub,
     schiehallion,
     squares,

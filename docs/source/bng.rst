@@ -12,6 +12,7 @@ Alphabetical list:
 - :class:`Coords`
 - :meth:`dimensions`
 - :meth:`fen`
+- :meth:`macdui`
 - :meth:`pub`
 - :meth:`schiehallion`
 - :meth:`squares`
@@ -27,6 +28,8 @@ Coordinates
 .. autofunction:: ben
 
 .. autofunction:: fen
+
+.. autofunction:: macdui
 
 .. autofunction:: pub
 
