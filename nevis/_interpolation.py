@@ -77,7 +77,7 @@ class linear_interpolant(object):
         f2 = np.where(h12 == h22, h12, (x2 - x) * h12 + (x - x1) * h22)
 
         # Final result
-        f = np.where(f1 == f2, f1, (y2 - y) * f1 + (y - y1) * f2)
+        f = float(np.where(f1 == f2, f1, (y2 - y) * f1 + (y - y1) * f2))
         if self.grad:
             # Gradient of the interpolant
             g = (h21 - h11) / self._resolution, (h12 - h11) / self._resolution
