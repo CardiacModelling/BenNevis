@@ -180,7 +180,7 @@ if not os.path.isdir(root):
 #
 cmap = matplotlib.cm.get_cmap('tab10', 10)
 fig, ax, data, ff = nevis.plot(
-    downsampling=27,
+    zoom=0.03,
     headless=True)
 for ii, sq in enumerate(squares):
     square, line = sq
@@ -204,7 +204,7 @@ for ii, sq in enumerate(squares):
     fig, ax, data, ff = nevis.plot(
         boundaries=square,
         labels=labels,
-        downsampling=1,
+        zoom=1,
         small_grid=True,
         headless=True)
     for jj, line in enumerate(lines):
