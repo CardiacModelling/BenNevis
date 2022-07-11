@@ -50,10 +50,15 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     ``small_grid``
         Show the 2-letter 2-number grid squares (10km by 10km)
     ``zoom``
-        Set to any positive number. When ``zoom`` is greater than 1, "zoom in"
-        the map (using bilinear interpolation); when ``zoom`` is less than 1,
-        "zoom out" the map (using downsampling). The default value is
-        ``1 / 27``, which creates a reasonable plot for the full GB data set.
+        Adjust plot size by interpolating (``zoom > 1``) or downsampling (
+        ``zoom < 1``).
+        
+        To downsample by e.g. a factor 10, set ``zoom = 1 / 10``. To 
+        interpolate and show e.g. 3x3 pixels per data point, set ``zoom = 3``.
+        Interpolation is performed using matplotlib's "bilinear interpolation".
+
+        The default value is ``1 / 27``, which creates a reasonably sized plot
+        for the full GB data set.
     ``headless``
         Set to ``True`` to create the figure without using pyplot.
     ``verbose``
@@ -79,7 +84,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     if zoom > 1:
         downsampling = 1
     else:
-        downsampling = round(1 / zoom)
+        downsampling = int(round(1 / zoom))
         zoom = 1
 
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).

@@ -91,6 +91,6 @@ def write_test_figure(path='gb-small.png'):
     """
     gb()
     labels = {'Ben Nevis': ben(), 'Holme Fen': fen()}
-    fig, ax, heights, g = plot(labels=labels)
+    fig, ax, heights, g = plot(labels=labels, zoom=1 / 32)
     save_plot(path, fig, verbose=True)
 
