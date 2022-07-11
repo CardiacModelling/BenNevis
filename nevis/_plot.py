@@ -51,13 +51,13 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         Show the 2-letter 2-number grid squares (10km by 10km)
     ``downsampling``
         Set to any integer to set the amount of downsampling (the ratio of data
-        points to pixels in either direction). If ``zoom`` is not set, the
-        default is 27, which creates a reasonable plot for the full GB
-        dataset; if ``zoom`` is set, the default is 1.
+        points to pixels in either direction). If ``zoom`` is less than or
+        equal to 1, the default is 27, which creates a reasonable plot for the
+        full GB dataset; if ``zoom`` is greater than 1, the default is 1.
     ``zoom``
         Set to any positive number. If greater than 1, the map is zoomed in by
         this factor; if less than 1, the map is zoomed out by this factor.
-        ``zoom`` takes effect on top of downsampling.
+        ``zoom`` takes effect on top of downsampling. Default is 1.
     ``headless``
         Set to ``True`` to create the figure without using pyplot.
     ``verbose``
