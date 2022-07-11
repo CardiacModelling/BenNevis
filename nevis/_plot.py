@@ -19,7 +19,7 @@ import nevis
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
          scale_bar=True, big_grid=False, small_grid=False, downsampling=27,
-         upsampling=None, headless=False, verbose=False):
+         upsampling=None, zoom=1, headless=False, verbose=False):
     """
     Creates a plot of the 2D elevation data in ``heights``.
 
@@ -59,6 +59,11 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         linear interpolation. When not None, ``downsampling`` is overwritten
         to 1. ``boundaries`` must be set for upsampling to take effect. Note
         that this might take a long time, depending on size of the boundaries.
+    ``zoom``
+        Set to any positive number. If greater than 1, the map will be zoomed
+        in by this factor. If less than 1, the map will be zoomed out by this
+        factor. ``zoom`` takes effect on top of ``downsampling`` or
+        ``upsampling``.
     ``headless``
         Set to ``True`` to create the figure without using pyplot.
     ``verbose``
@@ -178,11 +183,11 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     # more pixels per inch, but also to much bigger letters and thicker lines,
     # as it assumes the physical size should stay the same when printed!
     dpi = 100
-    fw = nx / dpi
-    fh = ny / dpi
+    fw = nx * zoom / dpi
+    fh = ny * zoom / dpi
     if verbose:
         print(f'Figure dimensions: {fw}" by {fh}" at {dpi} dpi')
-        print(f'Should result in {nx} by {ny} pixels.')
+        print(f'Should result in {int(fw * dpi)} by {int(fh * dpi)} pixels.')
 
     # Create figure
     if headless:
