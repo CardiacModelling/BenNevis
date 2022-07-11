@@ -52,8 +52,8 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     ``zoom``
         Adjust plot size by interpolating (``zoom > 1``) or downsampling (
         ``zoom < 1``).
-        
-        To downsample by e.g. a factor 10, set ``zoom = 1 / 10``. To 
+
+        To downsample by e.g. a factor 10, set ``zoom = 1 / 10``. To
         interpolate and show e.g. 3x3 pixels per data point, set ``zoom = 3``.
         Interpolation is performed using matplotlib's "bilinear interpolation".
 
