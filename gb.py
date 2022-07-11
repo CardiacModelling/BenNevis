@@ -13,9 +13,9 @@ import nevis
 # Say hi
 nevis.howdy()
 
-# Downsampling and boudnaries
+# Zoom and boudnaries
 boundaries = None
-downsampling = 27
+zoom = 0.03
 
 # Show grid
 big_grid = True
@@ -30,7 +30,7 @@ if square:
     x, y = square[0].grid
     r = nevis.spacing()
     boundaries = [x, x + square[1] - r, y, y + square[1] - r]
-    downsampling = 1 if square[1] > 50000 else 1
+    zoom = 1 if square[1] > 50000 else 1
     small_grid = True
 
 # Show some points
@@ -54,7 +54,7 @@ if False:
     b = nevis.ben().grid
     d = 20e3
     boundaries = [b[0] - d, b[0] + d, b[1] - d, b[1] + d]
-    downsampling = 1
+    zoom = 1
     small_grid = True
 
 # Labels
@@ -67,7 +67,7 @@ labels = {
 nevis.gb()
 
 # Create plot
-# downsampling=27 makes the plot fit on my screen at 100% zoom.
+# zoom=0.03 makes the plot fit on my screen at 100% zoom.
 fig, ax, heights, g = nevis.plot(
     boundaries=boundaries,
     labels=labels,
@@ -75,7 +75,7 @@ fig, ax, heights, g = nevis.plot(
     points=points,
     big_grid=big_grid,
     small_grid=small_grid,
-    downsampling=downsampling,
+    zoom=zoom,
     headless=True,
     verbose=True,
 )

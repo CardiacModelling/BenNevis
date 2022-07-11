@@ -18,8 +18,8 @@ import nevis
 
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
-         scale_bar=True, big_grid=False, small_grid=False, downsampling=None,
-         zoom=None, headless=False, verbose=False):
+         scale_bar=True, big_grid=False, small_grid=False,
+         zoom=0.03, headless=False, verbose=False):
     """
     Creates a plot of the 2D elevation data in ``heights``.
 
@@ -49,16 +49,11 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         Show the 2-letter grid squares (100km by 100km).
     ``small_grid``
         Show the 2-letter 2-number grid squares (10km by 10km)
-    ``downsampling``
-        Set to any integer to set the amount of downsampling (the ratio of data
-        points to pixels in either direction). The default setting is 27, which
-        creates a reasonable plot for the full GB data set. Note that the
-        ``zoom`` setting overrules this argument: no downsampling is performed
-        if ``zoom > 1``.
     ``zoom``
-        Set to any positive number greater than 1 to disable downsampling and
-        instead "zoom in" (using bilinear interpolation). The default value is
-        ``1``.
+        Set to any positive number. When ``zoom`` is greater than 1, "zoom in"
+        the map (using bilinear interpolation); when ``zoom`` is less than 1,
+        "zoom out" the map (using downsampling). The default value is ``0.03``,
+        which creates a reasonable plot for the full GB data set.
     ``headless``
         Set to ``True`` to create the figure without using pyplot.
     ``verbose``
@@ -80,16 +75,12 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         print(f'Lowest point: {vmin}')
         print(f'Highest point: {vmax}')
 
-    # Check zoom and downsampling
-    zoom = 1 if zoom is None else float(zoom)
-    if zoom < 1:
-        raise ValueError('zoom must be None or greater or equal to one.')
-    downsampling = 27 if downsampling is None else int(downsampling)
-    if downsampling < 1:
-        raise ValueError(
-            'downsampling must be None or a integer greater than zero.')
+    # Calculate downsampling using zoom
     if zoom > 1:
         downsampling = 1
+    else:
+        downsampling = round(1 / zoom)
+        zoom = 1
 
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).
     if downsampling > 1:
