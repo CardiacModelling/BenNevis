@@ -19,7 +19,7 @@ import nevis
 
 def plot(boundaries=None, labels=None, trajectory=None, points=None,
          scale_bar=True, big_grid=False, small_grid=False,
-         zoom=0.03, headless=False, verbose=False):
+         zoom=1 / 27, headless=False, verbose=False):
     """
     Creates a plot of the 2D elevation data in ``heights``.
 
@@ -52,8 +52,8 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     ``zoom``
         Set to any positive number. When ``zoom`` is greater than 1, "zoom in"
         the map (using bilinear interpolation); when ``zoom`` is less than 1,
-        "zoom out" the map (using downsampling). The default value is ``0.03``,
-        which creates a reasonable plot for the full GB data set.
+        "zoom out" the map (using downsampling). The default value is
+        ``1 / 27``, which creates a reasonable plot for the full GB data set.
     ``headless``
         Set to ``True`` to create the figure without using pyplot.
     ``verbose``

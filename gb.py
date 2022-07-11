@@ -15,7 +15,7 @@ nevis.howdy()
 
 # Zoom and boudnaries
 boundaries = None
-zoom = 0.03
+zoom = 1 / 27
 
 # Show grid
 big_grid = True
@@ -67,7 +67,7 @@ labels = {
 nevis.gb()
 
 # Create plot
-# zoom=0.03 makes the plot fit on my screen at 100% zoom.
+# zoom=1 / 27 makes the plot fit on my screen at 100% zoom.
 fig, ax, heights, g = nevis.plot(
     boundaries=boundaries,
     labels=labels,
