@@ -84,13 +84,13 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     zoom = 1 if zoom is None else float(zoom)
     if zoom < 1:
         raise ValueError('zoom must be None or greater or equal to one.')
-    downsampling = 27 if downsampling is None else int(downsampling) 
+    downsampling = 27 if downsampling is None else int(downsampling)
     if downsampling < 1:
         raise ValueError(
             'downsampling must be None or a integer greater than zero.')
     if zoom > 1:
         downsampling = 1
-    
+
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).
     if downsampling > 1:
         if verbose:
