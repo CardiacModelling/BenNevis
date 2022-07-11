@@ -57,8 +57,8 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         anything other than 1, then no downsampling is performed.
     ``zoom``
         Set to any positive number. If greater than 1, the map is zoomed in by
-        this factor; if less than 1, the map is zoomed out by this factor.
-        ``zoom`` takes effect on top of downsampling. Default is 1.
+        this factor; if less than 1, the map is zoomed out by this factor. No
+        downsampling is performed when ``zoom != ``. The default value is 1.
     ``headless``
         Set to ``True`` to create the figure without using pyplot.
     ``verbose``
