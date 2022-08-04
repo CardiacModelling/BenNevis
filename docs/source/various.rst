@@ -6,10 +6,13 @@ Various utilities
 
 Alphabetical list:
 
+- :meth:`generate_kml`
 - :meth:`howdy`
 - :meth:`print_result`
 - :class:`Timer`
 - :meth:`write_test_figure`
+
+.. autofunction:: generate_kml
 
 .. autofunction:: howdy
 

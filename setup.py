@@ -70,6 +70,7 @@ setup(
         'bnglonlat',
         'matplotlib>=1.5',
         'numpy',
+        'pykml',
         'scipy',
         'setuptools',
         'zipfile-deflate64',

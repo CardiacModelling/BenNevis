@@ -76,6 +76,7 @@ from ._plot import (    # noqa
     save_plot,
 )
 from ._util import (    # noqa
+    generate_kml,
     howdy,
     print_result,
     Timer,
