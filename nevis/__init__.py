@@ -17,7 +17,7 @@ from ._nevis_version import (   # noqa
 import sys
 if sys.hexversion < 0x03060000:
     raise RuntimeError('nevis requires Python 3.6 or newer.')
-del(sys)    # Don't expose as part of API
+del sys    # Don't expose as part of API
 
 #
 # Installed project root
@@ -30,8 +30,8 @@ try:
 finally:
     # Always manually delete frame
     # https://docs.python.org/2/library/inspect.html#the-interpreter-stack
-    del(frame)
-del(os, inspect)    # Don't expose as part of API
+    del frame
+del os, inspect    # Don't expose as part of API
 
 #
 # Terrain data
@@ -43,7 +43,7 @@ _DIR_DATA = os.environ.get(_ENV_DATA)
 if _DIR_DATA is None:
     _DIR_DATA = os.path.join('~', 'nevis-data')
 _DIR_DATA = os.path.abspath(os.path.expanduser(_DIR_DATA))
-del(os)
+del os
 
 
 #
