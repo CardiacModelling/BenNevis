@@ -114,24 +114,36 @@ def print_result(x, y, z):
         print('  ' + photo)
 
 
-def generate_kml(file, labels=None, trajectory=None, points=None,):
+def generate_kml(path, labels=None, trajectory=None, points=None,):
     """
     Generate a KML (Keyhole Markup Language, used to display geographic data
     in an Earth browser such as Google Earth) file from given data.
 
+    For a description of the KML format, see
+    https://developers.google.com/kml/documentation/kml_tut
+
     Arguments:
 
-    ``file``
-        The name of the file to write to.
+    ``path``
+        The path of the file to write to.
     ``labels``
         An optional dictionary mapping string labels to points (tuples in
-        meters or Coords objects) that will be marked on the map.
+        meters or Coords objects) that will be marked on the map. The points
+        will be shown as green pinpoints with text labels beside them.
     ``trajectory``
         An optional array of shape ``(n_points, 2)`` indicating the trajectory
-        followed to get to Ben Nevis (points specified in meters).
+        to be plotted (points specified in meters). All the points along the
+        trajectory will be shown as small orange pinpoints with labels of
+        their index prefixed with "T" (e.g. "T3"). The trajectory itself will
+        be shown as a red curve extended down to the ground connecting
+        adjacent points.
     ``points``
         An optional array of shape ``(n_points, 2)`` indicating points on the
-        map (points specified in meters).
+        map (points specified in meters). All the points will be shown as small
+        blue pinpoints with labels of their index prefixed with "P" (e.g.
+        "P3").
+
+    ``lables``, ``trajectory``, and ``points`` can be used simultaneously.
     """
 
     def make_coords(x, y):
@@ -247,6 +259,6 @@ def generate_kml(file, labels=None, trajectory=None, points=None,):
         )
     )
 
-    with open(file, 'w') as fobj:
+    with open(path, 'w') as fobj:
         fobj.write(
             etree.tostring(doc, pretty_print=True).decode('utf-8'))
