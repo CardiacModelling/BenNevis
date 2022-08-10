@@ -360,7 +360,7 @@ def fix_sea_levels_in_odd_squares(heights):
     w = w // resolution
     view = heights[y:y + 2 * w, x:x + 2 * w]
     view[view < 0.1] = -10
-    del(view)
+    del view
 
 
 def save_cambridgeshire(heights):
@@ -456,7 +456,7 @@ def set_sea_level(heights, s, print_to_screen=True):
                 print('WARNING: Reached kmax')
 
         for i in reversed(skip):
-            del(squares[i])
+            del squares[i]
         if not squares:
             break
         if not changed:

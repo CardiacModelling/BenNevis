@@ -10,7 +10,7 @@ import sys
 sys.path.append(os.path.abspath('nevis'))
 from _nevis_version import __version__ as version  # noqa
 sys.path.pop()
-del(os, sys)
+del os, sys
 
 
 # Load text for long description
@@ -70,6 +70,7 @@ setup(
         'bnglonlat',
         'matplotlib>=1.5',
         'numpy',
+        'pykml',
         'scipy',
         'setuptools',
         'zipfile-deflate64',

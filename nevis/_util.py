@@ -4,6 +4,9 @@ Provides utility methods (i.e. methods not directly related to ``nevis``).
 """
 import timeit
 
+from pykml.factory import KML_ElementMaker as KML
+from lxml import etree
+
 import nevis
 
 
@@ -110,3 +113,153 @@ def print_result(x, y, z):
     photo = hill.photo()
     if photo:
         print('  ' + photo)
+
+
+def generate_kml(path, labels=None, trajectory=None, points=None,):
+    """
+    Generate a KML (Keyhole Markup Language, used to display geographic data
+    in an Earth browser such as Google Earth) file from given data.
+
+    For a description of the KML format, see
+    https://developers.google.com/kml/documentation/kml_tut
+
+    Arguments:
+
+    ``path``
+        The path of the file to write to.
+    ``labels``
+        An optional dictionary mapping string labels to points (tuples in
+        meters or Coords objects) that will be marked on the map. The points
+        will be shown as green pinpoints with text labels beside them.
+    ``trajectory``
+        An optional array of shape ``(n_points, 2)`` indicating the trajectory
+        to be plotted (points specified in meters). All the points along the
+        trajectory will be shown as small orange pinpoints with labels of
+        their index prefixed with "T" (e.g. "T3"). The trajectory itself will
+        be shown as a red curve extended down to the ground connecting
+        adjacent points.
+    ``points``
+        An optional array of shape ``(n_points, 2)`` indicating points on the
+        map (points specified in meters). All the points will be shown as small
+        blue pinpoints with labels of their index prefixed with "P" (e.g.
+        "P3").
+
+    ``lables``, ``trajectory``, and ``points`` can be used simultaneously.
+    """
+
+    def make_coords(x, y):
+        """
+        Convert a pair of coordinates (in meters) to a KML coordinates string.
+        """
+        lat, lon = nevis.Coords(x, y).latlong
+        return f'{lon},{lat}'
+
+    marks = []
+    if labels:
+        for label, p in labels.items():
+            if isinstance(p, nevis.Coords):
+                p = p.grid
+            x, y = p
+
+            marks.append(
+                KML.Placemark(
+                    KML.name(label),
+                    KML.Point(
+                        KML.coordinates(make_coords(x, y))
+                    ),
+                    KML.styleUrl('#label_icon_style'),
+                )
+            )
+
+    if points:
+        for i, (x, y) in enumerate(points):
+            marks.append(
+                KML.Placemark(
+                    KML.name(f'P{i}'),
+                    KML.Point(
+                        KML.coordinates(make_coords(x, y))
+                    ),
+                    KML.styleUrl('#points_icon_style'),
+                )
+            )
+
+    if trajectory:
+        for i, (x, y) in enumerate(trajectory):
+            marks.append(
+                KML.Placemark(
+                    KML.name(f'T{i}'),
+                    KML.Point(
+                        KML.coordinates(make_coords(x, y))
+                    ),
+                    KML.styleUrl('#trajectory_icon_style'),
+                )
+            )
+
+        marks.append(
+            KML.Placemark(
+                KML.name('Trajectory'),
+                KML.styleUrl('#line_style'),
+                KML.LineString(
+                    KML.coordinates(
+                        ' '.join([make_coords(x, y) for x, y in trajectory])
+                    ),
+                    KML.extrude(1),
+                    KML.tessellate(1),
+                )
+            )
+        )
+
+    icon_url = 'http://maps.google.com/mapfiles/kml/paddle/wht-blank.png'
+
+    doc = KML.kml(
+        KML.Document(
+            KML.name('Nevis Project'),
+            KML.Style(
+                KML.LineStyle(
+                    KML.color('ff1400FF'),
+                    KML.width(3),
+                ),
+                id="line_style"
+            ),
+            KML.Style(
+                KML.IconStyle(
+                    KML.Icon(
+                        KML.href(icon_url),
+                    ),
+                    KML.color('ff00FF14'),
+                ),
+                id="label_icon_style"
+            ),
+            KML.Style(
+                KML.IconStyle(
+                    KML.Icon(
+                        KML.href(icon_url),
+                    ),
+                    KML.scale(0.5),
+                    KML.color('ffFF7800'),
+                ),
+                KML.LabelStyle(
+                    KML.scale(0.5),
+                ),
+                id="points_icon_style"
+            ),
+            KML.Style(
+                KML.IconStyle(
+                    KML.Icon(
+                        KML.href(icon_url),
+                    ),
+                    KML.scale(0.5),
+                    KML.color('ff1e90ff'),
+                ),
+                KML.LabelStyle(
+                    KML.scale(0.5),
+                ),
+                id="trajectory_icon_style"
+            ),
+            *marks,
+        )
+    )
+
+    with open(path, 'w') as fobj:
+        fobj.write(
+            etree.tostring(doc, pretty_print=True).decode('utf-8'))
