@@ -3,6 +3,7 @@
 Provides utility methods (i.e. methods not directly related to ``nevis``).
 """
 import timeit
+
 from pykml.factory import KML_ElementMaker as KML
 from lxml import etree
 
