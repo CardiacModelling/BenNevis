@@ -4,9 +4,6 @@ Provides utility methods (i.e. methods not directly related to ``nevis``).
 """
 import timeit
 
-from pykml.factory import KML_ElementMaker as KML
-from lxml import etree
-
 import nevis
 
 
@@ -146,6 +143,8 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
 
     ``lables``, ``trajectory``, and ``points`` can be used simultaneously.
     """
+    from pykml.factory import KML_ElementMaker as KML
+    from lxml import etree
 
     def make_coords(x, y):
         """

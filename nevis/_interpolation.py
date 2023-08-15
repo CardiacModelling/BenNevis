@@ -44,7 +44,7 @@ class linear_interpolant(object):
     def __init__(self, grad=False):
         self._heights = nevis.gb()
         self._resolution = nevis.spacing()
-        self.grad = grad
+        self._grad = grad
 
     def __call__(self, x, y):
         ny, nx = self._heights.shape
@@ -78,7 +78,7 @@ class linear_interpolant(object):
 
         # Final result
         f = float(np.where(f1 == f2, f1, (y2 - y) * f1 + (y - y1) * f2))
-        if self.grad:
+        if self._grad:
             # Gradient of the interpolant
             g = (h21 - h11) / self._resolution, (h12 - h11) / self._resolution
             return f, g
