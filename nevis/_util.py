@@ -155,7 +155,7 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
         return f'{lon},{lat}'
 
     marks = []
-    if labels:
+    if labels is not None:
         for label, p in labels.items():
             if isinstance(p, nevis.Coords):
                 p = p.grid
@@ -171,7 +171,7 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
                 )
             )
 
-    if points:
+    if points is not None:
         for i, (x, y) in enumerate(points):
             marks.append(
                 KML.Placemark(
@@ -183,7 +183,7 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
                 )
             )
 
-    if trajectory:
+    if trajectory is not None:
         for i, (x, y) in enumerate(trajectory):
             marks.append(
                 KML.Placemark(
