@@ -132,19 +132,21 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
 
     # Create colormap
     # f = absolute height, g = relative to vmax (and zero)
+    vmax = max(vmax, 1600)
     f = lambda x: (x - vmin) / (vmax - vmin)
     # g = lambda x: f(x * vmax)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
         'soundofmusic', [
-            (0, '#4872d3'),             # Deep sea blue
+            (0, '#ff0000'),
+            (f(-100), '#ff0000'),
+            (f(-99.999), '#346172'),    # Deep sea blue
             (f(-0.1), '#68b2e3'),       # Shallow sea blue
             (f(0.0), '#0f561e'),        # Dark green
-            (f(10), '#1a8b33'),         # Nicer green
-            (f(100), '#11aa15'),        # Glorious green
-            (f(300), '#e8e374'),        # Yellow at ~1000ft
-            (f(610), '#8a4121'),        # Brownish at ~2000ft
-            (f(915), '#999999'),        # Grey at ~3000ft
-            (1, 'white'),
+            (f(10), '#338833'),
+            (f(1500), '#449944'),
+            (f(1501), '#ffff00'),
+            (f(1502), '#ffff00'),
+            (1, '#ffff00'),
         ], N=1024)
     #import matplotlib.cm
     #cmap = matplotlib.cm.get_cmap('inferno')
@@ -178,7 +180,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         cmap=cmap,
         vmin=vmin,
         vmax=vmax,
-        interpolation='bilinear' if zoom > 1 else 'none',
+        interpolation='none',
     )
     ax.set_xlim(0, nx)
     ax.set_ylim(0, ny)

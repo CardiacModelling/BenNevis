@@ -165,7 +165,7 @@ def download_os_terrain_50(force=False):
         set_sea_level(heights, -100)
 
         # Make sea slope to make land more findable
-        add_sea_slope(heights, -100)
+        #add_sea_slope(heights, -100)
 
         print(f'Saving to {terrain_file_npy}...')
         np.save(terrain_file_npy, heights)
@@ -368,16 +368,17 @@ def save_cambridgeshire(heights):
     Artificially raise the level of some river beds to stop Cambridgeshire from
     flooding.
     """
-    # Last checked 2022-06-27
+    # Last checked 2023-08-27
 
     # Block river in TF 50, stopping a lot of flooding in cambridgeshire
-    heights[6047, 11183] = 0.01
+    #heights[6047, 11183] = 0.01   # Worked 2022-06-27, but not 2023-08-31
+    heights[6196, 11197] = 0.01
 
     # Block river Yare in TG 50, and Oulton Dyke in TM59, stopping lots of
-    # flooding near Norwich
-    heights[6151, 13041] = 0.01
-    heights[5851, 13013] = 0.01
-
+    # flooding near Norwich.
+    # Note: Both must be set
+    heights[6151, 13041] = 0.01   # TG50
+    heights[5851, 13013] = 0.01   # TM59
 
 def set_sea_level(heights, s, print_to_screen=True):
     """

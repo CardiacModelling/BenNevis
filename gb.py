@@ -12,6 +12,7 @@ import nevis
 
 # Say hi
 nevis.howdy()
+nevis.download_os_terrain_50()
 
 # Zoom and boudnaries
 boundaries = None
@@ -30,7 +31,7 @@ if square:
     x, y = square[0].grid
     r = nevis.spacing()
     boundaries = [x, x + square[1] - r, y, y + square[1] - r]
-    zoom = 1 if square[1] > 50000 else 1
+    zoom = 1 if square[1] > 50000 else 4
     small_grid = True
 
 # Show some points
