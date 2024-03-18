@@ -370,7 +370,8 @@ def save_cambridgeshire(heights):
     """
     # Last checked 2023-08-27
 
-    # Block river in TF 50, stopping a lot of flooding in cambridgeshire
+    # Block river Great Ouse in TF 50, stopping a lot of flooding in
+    # cambridgeshire.
     #heights[6047, 11183] = 0.01   # Worked 2022-06-27, but not 2023-08-31
     heights[6196, 11197] = 0.01
 
