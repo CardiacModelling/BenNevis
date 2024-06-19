@@ -83,7 +83,7 @@ def gb(downsampling=None):
         if not os.path.isfile(not_sea_file_npy):
             raise DataNotFoundError(
                 'List of below sea-level inland points not found in'
-                ' {nevis._DIR_DATA}. Please call'
+                f' {nevis._DIR_DATA}. Please call'
                 ' nevis.download_os_terrain_50() to create this file.'
             )
 
