@@ -245,13 +245,15 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
 
     # Show requested points
     if points is not None:
+        points = np.asarray(points)
+        alpha, ms, mw = (0.3, 4, 1) if len(points) > 20 else (1, 12, 2)
         x, y = meters2indices(points[:, 0], points[:, 1])
-        ax.plot(
-            x, y, 'x', color='#0000ff',
-            markeredgewidth=1, markersize=4, alpha=0.3)
+        ax.plot(x, y, 'x', color='#0000ff',
+                markeredgewidth=mw, markersize=ms, alpha=alpha)
 
     # Show trajectory
     if trajectory is not None:
+        trajectory = np.asarray(trajectory)
         x, y = meters2indices(trajectory[:, 0], trajectory[:, 1])
         ax.plot(
             x, y, 'o-', color='#000000',
