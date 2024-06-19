@@ -70,15 +70,15 @@ class Timer(object):
 #
 def howdy(name='version'):
     """ Say hi the old fashioned way. """
-    print('')
-    print('                |>          ')
-    print(' Starting Ben   |   Nevis   ')
-    print('               / \    ' + name)
-    print('            /\/---\     ' + nevis.__version__)
-    print('           /---    \/\      ')
-    print('        /\/   /\   /  \     ')
-    print('     /\/  \  /  \_/    \    ')
-    print('    /      \/           \   ')
+    print(r'')
+    print(r'                |>          ')
+    print(r' Starting Ben   |   Nevis   ')
+    print(r'               / \    ' + name)
+    print(r'            /\/---\     ' + nevis.__version__)
+    print(r'           /---    \/\      ')
+    print(r'        /\/   /\   /  \     ')
+    print(r'     /\/  \  /  \_/    \    ')
+    print(r'    /      \/           \   ')
 
 
 def print_result(x, y, z):
