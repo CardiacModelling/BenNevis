@@ -153,7 +153,8 @@ def download_os_terrain_50(force=False):
         extract(terrain_file, heights, resolution)
 
         # Replace missing values by far-below-sea level
-        heights[np.isnan(heights)] = -100
+        s = -100
+        heights[np.isnan(heights)] = s
 
         # Fix odd squares
         fix_sea_levels_in_odd_squares(heights)
@@ -161,11 +162,12 @@ def download_os_terrain_50(force=False):
         # Add a few fake damns
         save_cambridgeshire(heights)
 
-        # Use "sea mask" to set sea points to -100
-        set_sea_level(heights, -100)
+        # Create a "sea mask" in the loaded data, indicating sea with -100
+        set_sea_level(heights, s)
 
-        # Make sea slope to make land more findable
-        add_sea_slope(heights, -100)
+        # Make the points labelled as sea slope towards the land, to make it
+        # more findable.
+        add_sea_slope(heights, s)
 
         print(f'Saving to {terrain_file_npy}...')
         np.save(terrain_file_npy, heights)
@@ -176,7 +178,8 @@ def download_os_terrain_50(force=False):
 
 def download_gagg(url, fname, print_to_screen=True):
     """
-    Downloads the (160mb) ``gagg`` file from Ordnance Survey.
+    Downloads the (160mb) ``gagg`` file containing the OS50 data from the
+    Ordnance Survey.
     """
     if print_to_screen:
         print('Downloading terrain data...')
@@ -230,7 +233,7 @@ def extract(basename, heights, resolution, print_to_screen=True):
 
 def read_nested_zip(parent, name, heights, resolution):
     """
-    Opens a zip-in-a-zip and reads any ``.asc`` files inside it.
+    Opens a zip-in-a-zip and reads and extracts any ``.asc`` files inside it.
     """
     # Open zip-in-a-zip
     with parent.open(name, 'r') as par:
@@ -303,7 +306,8 @@ def read_asc(handle, heights, resolution):
 
 def fix_sea_levels_in_odd_squares(heights):
     """
-    "Correct" sea level data in squares with known anomalies.
+    Manually "lower" some areas just off the coast that have above sea-level
+    heights in the data set.
     """
     # Fix sea level in NT68 (last checked on 2022-06-27)
     x, w = nevis.Coords.from_square_with_size('NT68')
@@ -365,8 +369,8 @@ def fix_sea_levels_in_odd_squares(heights):
 
 def save_cambridgeshire(heights):
     """
-    Artificially raise the level of some river beds to stop Cambridgeshire from
-    flooding.
+    Artificially raise the level of two river beds to stop the sea-level
+    setting algorithm from treating e.g. Holme fen as "sea".
     """
     # Last checked 2023-08-27
 
@@ -397,7 +401,7 @@ def set_sea_level(heights, s, print_to_screen=True):
     d = 80  # Trial and error shows this is near optimal
     squares = _spiral_squares(heights, d)
 
-    # The edges are all sea
+    # The edges of the map are all definitely sea, so set to s
     e = 1
     heights[:e, :] = s
     heights[-e:, :] = s
@@ -475,26 +479,35 @@ def set_sea_level(heights, s, print_to_screen=True):
 def add_sea_slope(heights, s, print_to_screen=True):
     """
     Make the sea slope downwards, as you move further away from the coast.
+
+    The input should be a ``heights`` array in which all points known to be sea
+    (and only those points) have been set to height ``s``.
     """
     print('Adding slope to sea bed')
     t = nevis.Timer()
 
-    h = 0.01
+    h = 0.01  # slope per square
     ny, nx = heights.shape
 
+    # Create arrays of all neighbours above, below, left, and right of points
     v0 = heights[1:]
     v1 = heights[:-1]
     v2 = heights[:, 1:]
     v3 = heights[:, :-1]
 
+    # Select all points next to a "sea" point, that are not themselves sea.
     yd, xd = np.nonzero(np.logical_and(v1 == s, v0 != s))
     yu, xu = np.nonzero(np.logical_and(v0 == s, v1 != s))
     yl, xl = np.nonzero(np.logical_and(v3 == s, v2 != s))
     yr, xr = np.nonzero(np.logical_and(v2 == s, v3 != s))
     y = np.concatenate((yd, yu + 1, yl, yr))
     x = np.concatenate((xd, xu, xl, xr + 1))
+    # And set all these points heights to s (sea mask value) minus h
     heights[y, x] = s - h
 
+    # Iteratively find all neighbours of the current selection that are still
+    # at level s, or at a value lower than what this pass would set them to.
+    # Then set these points to the current selection's height minus s.
     j = 0
     for i in range(ny * nx):
         div = 1 if len(x) > 300000 else (10 if len(x) > 50000 else 100)
