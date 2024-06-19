@@ -20,6 +20,12 @@ Accessing the data
 
 .. autofunction:: spacing
 
+Checking if points are sea or just below sea-level
+==================================================
+
+.. autofunction:: inland_below_sea_level
+
+.. autofunction:: is_sea
 
 Downloading the data
 ====================

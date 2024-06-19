@@ -30,6 +30,8 @@ import nevis
 terrain_file = 'terr50_gagg_gb'
 terrain_file_zip = os.path.join(nevis._DIR_DATA, terrain_file + '.zip')
 terrain_file_npy = os.path.join(nevis._DIR_DATA, terrain_file + '.npy')
+not_sea_file = 'not_sea'
+not_sea_file_npy = os.path.join(nevis._DIR_DATA, not_sea_file + '.npy')
 
 # URL to download it from
 url = ('https://api.os.uk/downloads/v1/products/Terrain50/downloads?'
@@ -41,8 +43,10 @@ resolution = 50
 # .asc file encoding
 ENC = 'utf-8'
 
-# Cached heights
+# Cached heights and not-sea-mask
 _heights = None
+_not_sea = None             # y * width + x
+_not_sea_unpacked = None    # array of y, x indices
 
 
 class DataNotFoundError(RuntimeError):
@@ -64,21 +68,30 @@ def gb(downsampling=None):
     A downsampled version can be returned for testing purposes, by setting
     ``downsampling`` to any integer greater than one.
     """
-    global _heights
+    global _heights, _not_sea
 
     # Load data (or retrieve from cache)
-    if _heights is None:
-        # Check file exists
+    if _heights is None or _not_sea is None:
+        # Check files exists
         if not os.path.isfile(terrain_file_npy):
             raise DataNotFoundError(
                 f'OS Terrain 50 data not found in {nevis._DIR_DATA}.'
                 ' Please use nevis.download_os_terrain_50() to download and'
                 ' process this data set.'
             )
+        # Don't load the heights data yet, may have to be rebuild it anyway!
+        if not os.path.isfile(not_sea_file_npy):
+            raise DataNotFoundError(
+                'List of below sea-level inland points not found in'
+                ' {nevis._DIR_DATA}. Please call'
+                ' nevis.download_os_terrain_50() to create this file.'
+            )
 
-        # Load
+        # Load both files
         _heights = np.load(terrain_file_npy)
         _heights.setflags(write=False)
+        _not_sea = np.load(not_sea_file_npy)
+        _not_sea.setflags(write=False)
 
     # Return downsampled version for testing (but keep full version in cache)
     if downsampling is not None:
@@ -87,6 +100,44 @@ def gb(downsampling=None):
             return _heights[::downsampling, ::downsampling]
 
     return _heights
+
+
+def inland_below_sea_level_indices():
+    """
+    Returns a list of indices in the heights data that are below sea-level, but
+    which nevis's preprocessing did not consider to be "sea".
+    """
+    global _not_sea_unpacked
+
+    if _not_sea_unpacked is None:
+        if _not_sea is None:
+            gb()
+        x = _not_sea % _heights.shape[1]
+        y = _not_sea // _heights.shape[1]
+        _not_sea_unpacked = np.vstack((y, x)).T
+
+    return _not_sea_unpacked
+
+
+def inland_below_sea_level():
+    """
+    Returns a list of points (x, y) in meters that are below sea-level, but
+    which nevis's preprocessing did not consider to be "sea".
+    """
+    ij = inland_below_sea_level_indices() * resolution
+    return np.vstack((ij[:, 1], ij[:, 0])).T
+
+
+def is_sea(coords):
+    """
+    Returns ``True`` if and only if the given :class:`nevis.Coords` were
+    classified as "sea" by nevis's pre-processing.
+    """
+    if _heights is None:
+        gb()
+    x, y = coords.grid // nevis.spacing()
+    return _heights[y, x] < 0 and (
+        (y * _heights.shape[1] + x) not in _not_sea)
 
 
 def download_os_terrain_50(force=False):
@@ -102,7 +153,9 @@ def download_os_terrain_50(force=False):
     global _heights
 
     # Already done and not forcing? Then return
-    if (not force) and os.path.isfile(terrain_file_npy):
+    have_terrain = os.path.isfile(terrain_file_npy)
+    have_not_sea = os.path.isfile(not_sea_file_npy)
+    if (not force) and have_terrain and have_not_sea:
         print('Downloaded, unpacked, and processed file already found:'
               ' Skipping.')
         return
@@ -141,7 +194,9 @@ def download_os_terrain_50(force=False):
         download_gagg(url, terrain_file_zip)
 
     # Unpack / process
-    if force or not os.path.isfile(terrain_file_npy):
+    if force or not have_terrain or not have_not_sea:
+        # Temporary sea-mask level
+        s = -100
 
         # Create empty array
         width, height = nevis.dimensions()
@@ -153,7 +208,6 @@ def download_os_terrain_50(force=False):
         extract(terrain_file, heights, resolution)
 
         # Replace missing values by far-below-sea level
-        s = -100
         heights[np.isnan(heights)] = s
 
         # Fix odd squares
@@ -165,6 +219,12 @@ def download_os_terrain_50(force=False):
         # Create a "sea mask" in the loaded data, indicating sea with -100
         set_sea_level(heights, s)
 
+        # Store below-zero points that are not in the sea, so that we can
+        # later detect if something has been labelled sea or not.
+        not_sea = inland_below_sea_level_points(heights, s)
+        print(f'Saving to {not_sea_file_npy}...')
+        np.save(not_sea_file_npy, not_sea)
+
         # Make the points labelled as sea slope towards the land, to make it
         # more findable.
         add_sea_slope(heights, s)
@@ -174,6 +234,9 @@ def download_os_terrain_50(force=False):
 
         # Store
         _heights = heights
+        _heights.setflags(write=False)
+        _not_sea = not_sea
+        _not_sea.setflags(write=False)
 
 
 def download_gagg(url, fname, print_to_screen=True):
@@ -384,6 +447,17 @@ def save_cambridgeshire(heights):
     # Note: Both must be set to see an effect.
     heights[6151, 13041] = 0.01   # TG50
     heights[5851, 13013] = 0.01   # TM59
+
+
+def inland_below_sea_level_points(heights, s, print_to_screen=True):
+    """
+    Return an array of (x, y) coordinates that are below sea-level, but not to
+    be treated as sea.
+    """
+    y, x = np.nonzero(np.logical_and(heights < 0, heights > s))
+    p = y * heights.shape[1] + x
+    assert np.max(p) < 2**32, 'Not-sea point does not fit uint32'
+    return np.array(p, dtype=np.uint32)
 
 
 def set_sea_level(heights, s, print_to_screen=True):

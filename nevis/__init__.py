@@ -64,6 +64,8 @@ from ._os_terrain_50 import (    # noqa
     DataNotFoundError,
     download_os_terrain_50,
     gb,
+    inland_below_sea_level,
+    is_sea,
     spacing,
 )
 from ._interpolation import (   # noqa
