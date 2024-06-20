@@ -20,16 +20,12 @@ ny, nx = heights.shape
 r = nevis.spacing()
 r2 = r // 2             # Height is taken at center of grid square
 
-# Get interpolants
-name = 'interpolation'
-f = nevis.linear_interpolant()
-g = nevis.spline(verbose=True)
-
 #
 # Squares and objects to draw on the maps
 #
-# Squares as (square, lines), where each square is (xlo, xhi, ylo, yhi) and
-# each line is (x0, x1, y0, y1)
+# Squares as (square, lines, sea), where each square is (xlo, xhi, ylo, yhi),
+# where each line is (x0, x1, y0, y1), and where sea is a bool indicating
+# whether the sea mask should be shown
 squares = []
 # Labels as name : Coords
 labels = {}
@@ -56,7 +52,7 @@ lines.append([216675, 216675, 773275, 771275])
 lines.append([214675, 216675, 771275, 771275])
 # Diagonal, from valley up to peak
 lines.append([216675 - 1400, 216675, 771275 - 1400, 771275])
-squares.append((square, lines))
+squares.append((square, lines, False))
 
 #
 # The (firth of) clyde near Dumbarton Rock NS 4001 7391
@@ -69,7 +65,7 @@ lines = []
 lines.append([239925, 239925, 674475, 672525])
 # Near Rock, horizontal
 lines.append([239925, 239225, 674475, 674475])
-squares.append((square, lines))
+squares.append((square, lines, True))
 
 #
 # Margate, near Dreamland and its Scenic Railway coaster 635107, 170534
@@ -81,11 +77,7 @@ lines = []
 lines.append([635125, 635125, 170225, 171825])
 # Through a river and into the sea
 lines.append([633125, 636125, 161825, 161825])
-squares.append((square, lines))
-
-#
-# Teignmouth beach SX 9441 7301
-#
+squares.append((square, lines, True))
 
 #
 # Sea issue NT68: Coast near North Berwick 359353, 682985
@@ -96,10 +88,10 @@ lines = []
 lines.append([360025, 369975, 684025, 684025])
 # Through square, vertically
 lines.append([365025, 365025, 680025, 689975])
-squares.append((square, lines))
+squares.append((square, lines, True))
 # Through below-sea level "land" in square below
 lines.append([362825, 362825, 677925, 680525])
-squares.append((square, lines))
+squares.append((square, lines, True))
 
 #
 # Sea issues NR35,24,34,44,33: Islay, south-east coast
@@ -114,7 +106,7 @@ lines.append([130025, 132975, 652025, 652025])
 lines.append([129025, 129025, 649975, 647025])
 lines.append([120025, 149975, 645025, 645025])
 lines.append([130025, 139975, 635025, 635025])
-squares.append((square, lines))
+squares.append((square, lines, True))
 
 #
 # Sea issues: NR56,57: Jura south-east coast
@@ -126,7 +118,7 @@ lines = []
 lines.append([156025, 159975, 672025, 672025])
 lines.append([153025, 159975, 666025, 666025])
 lines.append([150025, 159975, 661525, 661525])
-squares.append((square, lines))
+squares.append((square, lines, True))
 
 #
 # Sea issues: NR65,64,74,76,75: North-west Kintyre and south-west Knapdale
@@ -139,7 +131,7 @@ lines.append([171225, 171225, 669975, 660025])
 lines.append([160025, 175025, 655025, 655025])
 lines.append([160025, 169975, 645025, 645025])
 lines.append([165025, 165025, 659975, 640025])
-squares.append((square, lines))
+squares.append((square, lines, True))
 
 #
 # End of the world
@@ -149,7 +141,7 @@ lines = []
 lines.append([-1025, 1025, 5525, 5525])
 lines.append([5525, 5525, -1025, 1025])
 lines.append([-1025, 1025, -1025, 1025])
-squares.append((square, lines))
+squares.append((square, lines, False))
 
 w, h = nx * r, ny * r
 square = [w - 8000, w + 8000, -8000, 8000]
@@ -157,7 +149,7 @@ lines = []
 lines.append([w - 1025, w + 1025, 5525, 5525])
 lines.append([w - 5525, w - 5525, -1025, 1025])
 lines.append([w - 1025, w + 1025, 1025, -1025])
-squares.append((square, lines))
+squares.append((square, lines, False))
 
 w, h = nx * r, ny * r
 square = [w - 8000, w + 8000, h - 8000, h + 8000]
@@ -165,8 +157,35 @@ lines = []
 lines.append([w - 1025, w + 1025, h - 5525, h - 5525])
 lines.append([w - 5525, w - 5525, h - 1025, h + 1025])
 lines.append([w - 1025, w + 1025, h - 1025, h + 1025])
-squares.append((square, lines))
+squares.append((square, lines, False))
 
+#
+# Teignmouth
+#
+square = [290000, 300000, 65000, 80000]
+lines = []
+# Horizontally through squares
+lines.append([293025, 295025, 72525, 72525])
+squares.append((square, lines, True))
+
+#
+# Holme fen 520483, 289083
+#
+square = [510000, 570000, 280000, 320000]
+lines = []
+# Horizontally through squares
+lines.append([520025, 531025, 289075, 289075])
+lines.append([558825, 560825, 309825, 309825])
+lines.append([559825, 559825, 308825, 310825])
+squares.append((square, lines, True))
+
+#
+# Get interpolants
+#
+name = 'interpolation'
+f = nevis.linear_interpolant()
+g = nevis.spline(verbose=True)
+h = lambda x, y: 1 if nevis.is_sea(nevis.Coords(x, y)) else 0
 
 #
 # Ensure results directory exists
@@ -183,7 +202,7 @@ fig, ax, data, ff = nevis.plot(
     zoom=0.03,
     headless=True)
 for ii, sq in enumerate(squares):
-    square, line = sq
+    square, line, show_sea_mask = sq
     x0, x1, y0, y1 = square
     x0, y0 = ff(x0, y0)
     x1, y1 = ff(x1, y1)
@@ -200,7 +219,7 @@ fig.savefig(path)
 # Figure 2: Zoomed maps
 #
 for ii, sq in enumerate(squares):
-    square, lines = sq
+    square, lines, show_sea_mask = sq
     fig, ax, data, ff = nevis.plot(
         boundaries=square,
         labels=labels,
@@ -226,11 +245,13 @@ for ii, sq in enumerate(squares):
     fig.savefig(path)
 
     # Figure 3: Line from known top to you
+    fs = (f, g, h) if show_sea_mask else (f, g)
+
     for jj, line in enumerate(lines):
         x0, x1, y0, y1 = line
         p0, p1 = nevis.Coords(x0, y0), nevis.Coords(x1, y1)
         fig, ax, q0, q1 = nevis.plot_line(
-            (f, g), p0, p1, figsize=(14, 10), headless=True)
+            fs, p0, p1, figsize=(14, 10), evaluations=1000, headless=True)
         ax.minorticks_on()
         ax.grid(which='major')
         ax.grid(which='minor', color='#eeeeee')

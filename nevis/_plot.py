@@ -289,10 +289,6 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     """
     Draws a line between two points and evaluates a function along it.
 
-    Note that this method assumes you will want to write the figure to disk
-    with :meth:`fig.savefig()`. If you want to display it using ``pyplot``,
-    set ``headless=False``.
-
     Arguments:
 
     ``f``
@@ -312,7 +308,8 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
     ``figsize``
         The default figure size
     ``headless``
-        Set to ``True`` to create the figure without using pyplot.
+        Set to ``True`` to create the figure without using pyplot, i.e. to save
+        with ``figsave`` instead of calling ``plt.show()``.
     ``verbose``
         Set to ``True`` to print updates to ``stdout`` while plotting.
 
@@ -339,10 +336,11 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
         fs = [f]
     else:
         fs = f
-        for f in fs:
+        for i, f in enumerate(fs):
             if not callable(f):
                 raise ValueError(
-                    'f must be a callable or a sequence of callables.')
+                    'f must be a callable or a sequence of callables: found'
+                    f' non-callable at index {i}.')
 
     # Evaluations-es
     ys = [[f(*x) for x in p] for f in fs]

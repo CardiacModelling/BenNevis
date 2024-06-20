@@ -489,11 +489,12 @@ def pub(name=None):
 Coords.ben = Coords(gridx=216666, gridy=771288)
 Coords.fen = Coords(gridx=520483, gridy=289083)
 Coords.pub = {
-    #'Ye olde trip to jerusalem': Coords(gridx=457034, gridy=339443},
     'Bear': Coords(gridx=451473, gridy=206135),
     'Canal house': Coords(gridx=457307, gridy=339326),
     'MacSorleys': Coords(gridx=258809, gridy=665079),
     'Sheffield tap': Coords(gridx=435847, gridy=387030),
+    'Ship Inn': Coords(gridx=293945, gridy=72712),
+    'Laurel Inn': Coords(gridx=495227, gridy=505037),
 }
 
 

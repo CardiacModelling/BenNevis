@@ -138,6 +138,13 @@ A a great map without BNG coordinates can be found at https://opentopomap.org.
 
 The sea is a bit messy in these files, as the values depend on mean sea level in each 10x10 km^2 area (OS Tile) relative to OS datum (0m) level [which is mean sea level in Newlyn, Cornwall](https://en.wikipedia.org/wiki/Ordnance_datum).
 
+### The "sea"
+
+During preprocessing, the `nevis` module makes an attempt to classify points as "sea" or "not sea".
+This is done by assessing which below sea-level points can be accessed from the edge of the map, without ever going above sea-level.
+As a result, the mouths of small rivers, and large sections of wide rivers, are classified as "sea".
+All "sea" points are assigned height data to create a gentle slope pointing back towards the land.
+
 ### Hill tops
 
 Names of hill and mountain tops are taken from [The Database of British and Irish Hills v17.2](http://www.hills-database.co.uk), which is made available under a CC-BY license.
