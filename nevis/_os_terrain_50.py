@@ -136,8 +136,12 @@ def is_sea(coords):
     if _heights is None:
         gb()
     x, y = coords.grid // nevis.spacing()
-    return _heights[y, x] < 0 and (
-        (y * _heights.shape[1] + x) not in _not_sea)
+    try:
+        if _heights[y, x] >= 0:
+            return False
+    except IndexError:  # Anything off-map counts as sea
+        return True
+    return (y * _heights.shape[1] + x) not in _not_sea
 
 
 def download_os_terrain_50(force=False):
