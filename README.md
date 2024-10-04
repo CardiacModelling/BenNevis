@@ -169,3 +169,12 @@ We also experimented with a scipy [RectBiVariateSpline](https://docs.scipy.org/d
 This takes some time (~30 seconds on a fast machine) and uses considerable memory (~3GB).
 Most importantly, the spline shows some very serious (and unrealistic) artefacts near high gradients (e.g. at the sea side), so that the linear interpolation seems the way to go for now.
 
+## Citing
+
+If you are using this project, please cite our pre-print:
+
+Wei, Clerx, Mirams (2024) 
+Where's Ben Nevis? A 2D optimisation benchmark with 957,174 local optima based on Great Britain terrain data.
+arXiv. 
+[doi: 10.48550/arXiv.2410.02422](https://doi.org/10.48550/arXiv.2410.02422)
+| [code](https://github.com/CardiacModelling/BenNevisBenchmark)
