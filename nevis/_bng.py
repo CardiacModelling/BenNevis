@@ -428,11 +428,8 @@ class Hill(object):
 
     @property
     def ranked(self):
-        s = str(self._rank)
-        if s[-1] in '123':
-            if not (self._rank > 10 and s[-2] == '1'):
-                return s + 'st' if s[-1] == '1' else s + 'd'
-        return s + 'th'
+        n = self._rank
+        return str(n) + {1: 'st', 2: 'nd', 3: 'rd'}.get(4 if 10 <= n % 100 < 20 else n % 10, "th")
 
     @property
     def summit(self):
