@@ -96,7 +96,7 @@ Congratulations!
 You landed at an altitude of 1309m.
   https://opentopomap.org/#marker=15/57.07019/-3.669487
 You are 31m from the nearest named hill top, "Ben Macdui",
-  ranked the 2d heighest in GB.
+  ranked the 2nd highest in GB.
   http://hillsummits.org.uk/htm_summit/518.htm
 ```
 

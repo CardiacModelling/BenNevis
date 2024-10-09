@@ -106,7 +106,7 @@ def print_result(x, y, z):
         else f'{round(distance / 1000, 1)}km'
     )
     print(f'You are {dm} from the nearest named hill top, "{hill.name}",')
-    print(f'  ranked the {hill.ranked} heighest in GB.')
+    print(f'  ranked the {hill.ranked} highest in GB.')
     photo = hill.photo()
     if photo:
         print('  ' + photo)
