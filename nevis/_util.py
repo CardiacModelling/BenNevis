@@ -32,24 +32,24 @@ class Timer(object):
         if time is None:
             time = self.time()
         if time < 1e-2:
-            return str(time) + ' seconds'
+            return str(time) + " seconds"
         elif time < 60:
-            return str(round(time, 2)) + ' seconds'
+            return str(round(time, 2)) + " seconds"
         output = []
         time = int(round(time))
         units = [
-            (604800, 'week'),
-            (86400, 'day'),
-            (3600, 'hour'),
-            (60, 'minute'),
+            (604800, "week"),
+            (86400, "day"),
+            (3600, "hour"),
+            (60, "minute"),
         ]
         for k, name in units:
             f = time // k
             if f > 0 or output:
-                output.append(str(f) + ' ' + (name if f == 1 else name + 's'))
+                output.append(str(f) + " " + (name if f == 1 else name + "s"))
             time -= f * k
-        output.append('1 second' if time == 1 else str(time) + ' seconds')
-        return ', '.join(output)
+        output.append("1 second" if time == 1 else str(time) + " seconds")
+        return ", ".join(output)
 
     def reset(self):
         """
@@ -68,17 +68,17 @@ class Timer(object):
 #
 # Version-related methods
 #
-def howdy(name='version'):
-    """ Say hi the old fashioned way. """
-    print(r'')
-    print(r'                |>          ')
-    print(r' Starting Ben   |   Nevis   ')
-    print(r'               / \    ' + name)
-    print(r'            /\/---\     ' + nevis.__version__)
-    print(r'           /---    \/\      ')
-    print(r'        /\/   /\   /  \     ')
-    print(r'     /\/  \  /  \_/    \    ')
-    print(r'    /      \/           \   ')
+def howdy(name="version"):
+    """Say hi the old fashioned way."""
+    print(r"")
+    print(r"                |>          ")
+    print(r" Starting Ben   |   Nevis   ")
+    print(r"               / \    " + name)
+    print(r"            /\/---\     " + nevis.__version__)
+    print(r"           /---    \/\      ")
+    print(r"        /\/   /\   /  \     ")
+    print(r"     /\/  \  /  \_/    \    ")
+    print(r"    /      \/           \   ")
 
 
 def print_result(x, y, z):
@@ -97,22 +97,31 @@ def print_result(x, y, z):
 
     coords = nevis.Coords(gridx=x, gridy=y)
     hill, distance = nevis.Hill.nearest(coords)
-    print('Congratulations!' if distance < 100 else (
-        'Good job!' if distance < 1000 else 'Interesting!'))
-    print(f'You landed at an altitude of {round(z)}m.')
-    print(f'  {coords.opentopomap}')
+    print(
+        "Congratulations!"
+        if distance < 100
+        else ("Good job!" if distance < 1000 else "Interesting!")
+    )
+    print(f"You landed at an altitude of {round(z)}m.")
+    print(f"  {coords.opentopomap}")
     dm = (
-        f'{round(distance)}m' if distance < 1000
-        else f'{round(distance / 1000, 1)}km'
+        f"{round(distance)}m"
+        if distance < 1000
+        else f"{round(distance / 1000, 1)}km"
     )
     print(f'You are {dm} from the nearest named hill top, "{hill.name}",')
-    print(f'  ranked the {hill.ranked} highest in GB.')
+    print(f"  ranked the {hill.ranked} highest in GB.")
     photo = hill.photo()
     if photo:
-        print('  ' + photo)
+        print("  " + photo)
 
 
-def generate_kml(path, labels=None, trajectory=None, points=None,):
+def generate_kml(
+    path,
+    labels=None,
+    trajectory=None,
+    points=None,
+):
     """
     Generate a KML (Keyhole Markup Language, used to display geographic data
     in an Earth browser such as Google Earth) file from given data.
@@ -151,7 +160,7 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
         Convert a pair of coordinates (in meters) to a KML coordinates string.
         """
         lat, lon = nevis.Coords(x, y).latlong
-        return f'{lon},{lat}'
+        return f"{lon},{lat}"
 
     marks = []
     if labels is not None:
@@ -163,10 +172,8 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
             marks.append(
                 KML.Placemark(
                     KML.name(label),
-                    KML.Point(
-                        KML.coordinates(make_coords(x, y))
-                    ),
-                    KML.styleUrl('#label_icon_style'),
+                    KML.Point(KML.coordinates(make_coords(x, y))),
+                    KML.styleUrl("#label_icon_style"),
                 )
             )
 
@@ -174,11 +181,9 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
         for i, (x, y) in enumerate(points):
             marks.append(
                 KML.Placemark(
-                    KML.name(f'P{i}'),
-                    KML.Point(
-                        KML.coordinates(make_coords(x, y))
-                    ),
-                    KML.styleUrl('#points_icon_style'),
+                    KML.name(f"P{i}"),
+                    KML.Point(KML.coordinates(make_coords(x, y))),
+                    KML.styleUrl("#points_icon_style"),
                 )
             )
 
@@ -186,48 +191,46 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
         for i, (x, y) in enumerate(trajectory):
             marks.append(
                 KML.Placemark(
-                    KML.name(f'T{i}'),
-                    KML.Point(
-                        KML.coordinates(make_coords(x, y))
-                    ),
-                    KML.styleUrl('#trajectory_icon_style'),
+                    KML.name(f"T{i}"),
+                    KML.Point(KML.coordinates(make_coords(x, y))),
+                    KML.styleUrl("#trajectory_icon_style"),
                 )
             )
 
         marks.append(
             KML.Placemark(
-                KML.name('Trajectory'),
-                KML.styleUrl('#line_style'),
+                KML.name("Trajectory"),
+                KML.styleUrl("#line_style"),
                 KML.LineString(
                     KML.coordinates(
-                        ' '.join([make_coords(x, y) for x, y in trajectory])
+                        " ".join([make_coords(x, y) for x, y in trajectory])
                     ),
                     KML.extrude(1),
                     KML.tessellate(1),
-                )
+                ),
             )
         )
 
-    icon_url = 'http://maps.google.com/mapfiles/kml/paddle/wht-blank.png'
+    icon_url = "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png"
 
     doc = KML.kml(
         KML.Document(
-            KML.name('Nevis Project'),
+            KML.name("Nevis Project"),
             KML.Style(
                 KML.LineStyle(
-                    KML.color('ff1400FF'),
+                    KML.color("ff1400FF"),
                     KML.width(3),
                 ),
-                id="line_style"
+                id="line_style",
             ),
             KML.Style(
                 KML.IconStyle(
                     KML.Icon(
                         KML.href(icon_url),
                     ),
-                    KML.color('ff00FF14'),
+                    KML.color("ff00FF14"),
                 ),
-                id="label_icon_style"
+                id="label_icon_style",
             ),
             KML.Style(
                 KML.IconStyle(
@@ -235,12 +238,12 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
                         KML.href(icon_url),
                     ),
                     KML.scale(0.5),
-                    KML.color('ffFF7800'),
+                    KML.color("ffFF7800"),
                 ),
                 KML.LabelStyle(
                     KML.scale(0.5),
                 ),
-                id="points_icon_style"
+                id="points_icon_style",
             ),
             KML.Style(
                 KML.IconStyle(
@@ -248,17 +251,16 @@ def generate_kml(path, labels=None, trajectory=None, points=None,):
                         KML.href(icon_url),
                     ),
                     KML.scale(0.5),
-                    KML.color('ff1e90ff'),
+                    KML.color("ff1e90ff"),
                 ),
                 KML.LabelStyle(
                     KML.scale(0.5),
                 ),
-                id="trajectory_icon_style"
+                id="trajectory_icon_style",
             ),
             *marks,
         )
     )
 
-    with open(path, 'w') as fobj:
-        fobj.write(
-            etree.tostring(doc, pretty_print=True).decode('utf-8'))
+    with open(path, "w") as fobj:
+        fobj.write(etree.tostring(doc, pretty_print=True).decode("utf-8"))

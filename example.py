@@ -11,5 +11,4 @@ import nevis
 nevis.download_os_terrain_50()
 
 # Create and store a figure
-nevis.write_test_figure('gb-small.png')
-
+nevis.write_test_figure("gb-small.png")

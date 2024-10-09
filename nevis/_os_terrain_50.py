@@ -27,34 +27,36 @@ import nevis
 
 # Base name of the big zip file to read (e.g. to read 'terr50_gagg_gb.zip' we
 # put 'terr50_gagg_gb').
-terrain_file = 'terr50_gagg_gb'
-terrain_file_zip = os.path.join(nevis._DIR_DATA, terrain_file + '.zip')
-terrain_file_npy = os.path.join(nevis._DIR_DATA, terrain_file + '.npy')
-not_sea_file = 'not_sea'
-not_sea_file_npy = os.path.join(nevis._DIR_DATA, not_sea_file + '.npy')
+terrain_file = "terr50_gagg_gb"
+terrain_file_zip = os.path.join(nevis._DIR_DATA, terrain_file + ".zip")
+terrain_file_npy = os.path.join(nevis._DIR_DATA, terrain_file + ".npy")
+not_sea_file = "not_sea"
+not_sea_file_npy = os.path.join(nevis._DIR_DATA, not_sea_file + ".npy")
 
 # URL to download it from
-url = ('https://api.os.uk/downloads/v1/products/Terrain50/downloads?'
-       'area=GB&format=ASCII+Grid+and+GML+%28Grid%29&redirect')
+url = (
+    "https://api.os.uk/downloads/v1/products/Terrain50/downloads?"
+    "area=GB&format=ASCII+Grid+and+GML+%28Grid%29&redirect"
+)
 
 # Resolution: distance between neighbours in the grid
 resolution = 50
 
 # .asc file encoding
-ENC = 'utf-8'
+ENC = "utf-8"
 
 # Cached heights and not-sea-mask
 _heights = None
-_not_sea = None             # y * width + x
-_not_sea_unpacked = None    # array of y, x indices
+_not_sea = None  # y * width + x
+_not_sea_unpacked = None  # array of y, x indices
 
 
 class DataNotFoundError(RuntimeError):
-    """ Raised when the OS Terrain 50 data is not found. """
+    """Raised when the OS Terrain 50 data is not found."""
 
 
 def spacing():
-    """ Returns the spacing between any two grid points. """
+    """Returns the spacing between any two grid points."""
     return resolution
 
 
@@ -75,16 +77,16 @@ def gb(downsampling=None):
         # Check files exists
         if not os.path.isfile(terrain_file_npy):
             raise DataNotFoundError(
-                f'OS Terrain 50 data not found in {nevis._DIR_DATA}.'
-                ' Please use nevis.download_os_terrain_50() to download and'
-                ' process this data set.'
+                f"OS Terrain 50 data not found in {nevis._DIR_DATA}."
+                " Please use nevis.download_os_terrain_50() to download and"
+                " process this data set."
             )
         # Don't load the heights data yet, may have to be rebuild it anyway!
         if not os.path.isfile(not_sea_file_npy):
             raise DataNotFoundError(
-                'List of below sea-level inland points not found in'
-                f' {nevis._DIR_DATA}. Please call'
-                ' nevis.download_os_terrain_50() to create this file.'
+                "List of below sea-level inland points not found in"
+                f" {nevis._DIR_DATA}. Please call"
+                " nevis.download_os_terrain_50() to create this file."
             )
 
         # Load both files
@@ -160,8 +162,10 @@ def download_os_terrain_50(force=False):
     have_terrain = os.path.isfile(terrain_file_npy)
     have_not_sea = os.path.isfile(not_sea_file_npy)
     if (not force) and have_terrain and have_not_sea:
-        print('Downloaded, unpacked, and processed file already found:'
-              ' Skipping.')
+        print(
+            "Downloaded, unpacked, and processed file already found:"
+            " Skipping."
+        )
         return
 
     # Check directory exists, show message saying it will be created and how to
@@ -169,28 +173,28 @@ def download_os_terrain_50(force=False):
     make_dirs = not os.path.isdir(nevis._DIR_DATA)
     if make_dirs:
         msg = (
-            f'This method will create a directory: {nevis._DIR_DATA}\n'
-            'This will be used to store the OS Terrain 50 data set in both a'
-            ' compressed (160mb) and uncompressed (1.5gb) form, as well as'
-            ' additional files that can reach several gb in size.\n'
-            'These files will NOT be deleted automatically when nevis is'
-            ' uninstalled.\n'
+            f"This method will create a directory: {nevis._DIR_DATA}\n"
+            "This will be used to store the OS Terrain 50 data set in both a"
+            " compressed (160mb) and uncompressed (1.5gb) form, as well as"
+            " additional files that can reach several gb in size.\n"
+            "These files will NOT be deleted automatically when nevis is"
+            " uninstalled.\n"
         )
         if nevis._ENV_DATA in os.environ:
-            msg += 'This path was'
+            msg += "This path was"
         else:
-            msg += 'An alternative directory can be'
-        msg += f' specified with the environment variable: {nevis._ENV_DATA}'
+            msg += "An alternative directory can be"
+        msg += f" specified with the environment variable: {nevis._ENV_DATA}"
         print(msg)
 
     # Download zip file
     if force or not os.path.isfile(terrain_file_zip):
-        print('The OS Terrain 50 database will be downloaded from')
-        print(f'  {url}')
+        print("The OS Terrain 50 database will be downloaded from")
+        print(f"  {url}")
         print()
-        yesno = input('Continue? (y/n) ')
-        if yesno.lower() not in ['y', 'yes']:
-            print('Halted.')
+        yesno = input("Continue? (y/n) ")
+        if yesno.lower() not in ["y", "yes"]:
+            print("Halted.")
             return
 
         if make_dirs:
@@ -226,14 +230,14 @@ def download_os_terrain_50(force=False):
         # Store below-zero points that are not in the sea, so that we can
         # later detect if something has been labelled sea or not.
         not_sea = inland_below_sea_level_points(heights, s)
-        print(f'Saving to {not_sea_file_npy}...')
+        print(f"Saving to {not_sea_file_npy}...")
         np.save(not_sea_file_npy, not_sea)
 
         # Make the points labelled as sea slope towards the land, to make it
         # more findable.
         add_sea_slope(heights, s)
 
-        print(f'Saving to {terrain_file_npy}...')
+        print(f"Saving to {terrain_file_npy}...")
         np.save(terrain_file_npy, heights)
 
         # Store
@@ -249,7 +253,7 @@ def download_gagg(url, fname, print_to_screen=True):
     Ordnance Survey.
     """
     if print_to_screen:
-        print('Downloading terrain data...')
+        print("Downloading terrain data...")
     url = urllib.request.urlopen(url)
     try:
         raw_data = url.read()
@@ -257,8 +261,8 @@ def download_gagg(url, fname, print_to_screen=True):
         url.close()
 
     if print_to_screen:
-        print('Writing...')
-    with open(fname, 'wb') as f:
+        print("Writing...")
+    with open(fname, "wb") as f:
         f.write(raw_data)
 
 
@@ -272,16 +276,16 @@ def extract(basename, heights, resolution, print_to_screen=True):
     """
     # Open zip file
     if print_to_screen:
-        print(f'Reading from {terrain_file_zip}')
+        print(f"Reading from {terrain_file_zip}")
         i = 0
 
     t = nevis.Timer()
-    with zipfile.ZipFile(terrain_file_zip, 'r') as f:
+    with zipfile.ZipFile(terrain_file_zip, "r") as f:
 
         # Find inner zip files
         zips = []
         for name in f.namelist():
-            if os.path.splitext(name)[1] == '.zip':
+            if os.path.splitext(name)[1] == ".zip":
                 zips.append(name)
         zips.sort()
 
@@ -291,11 +295,11 @@ def extract(basename, heights, resolution, print_to_screen=True):
 
             if print_to_screen:
                 i += 1
-                print('.', end=(None if i % 79 == 0 else ''))
+                print(".", end=(None if i % 79 == 0 else ""))
                 sys.stdout.flush()
 
     if print_to_screen:
-        print(f'\nFinished, after {t.format()}')
+        print(f"\nFinished, after {t.format()}")
 
 
 def read_nested_zip(parent, name, heights, resolution):
@@ -303,21 +307,22 @@ def read_nested_zip(parent, name, heights, resolution):
     Opens a zip-in-a-zip and reads and extracts any ``.asc`` files inside it.
     """
     # Open zip-in-a-zip
-    with parent.open(name, 'r') as par:
+    with parent.open(name, "r") as par:
         nested = io.BytesIO(par.read())
         with zipfile.ZipFile(nested) as f:
 
             # Scan for asc files
             for path in f.namelist():
-                if os.path.splitext(path)[1] == '.asc':
+                if os.path.splitext(path)[1] == ".asc":
 
                     # Read internal asc
-                    with f.open(path, 'r') as asc:
+                    with f.open(path, "r") as asc:
                         try:
                             read_asc(asc, heights, resolution)
                         except Exception as e:
                             raise Exception(
-                                f'Error reading {path} in {name}: {str(e)}.')
+                                f"Error reading {path} in {name}: {str(e)}."
+                            )
 
 
 def read_asc(handle, heights, resolution):
@@ -329,38 +334,40 @@ def read_asc(handle, heights, resolution):
 
     # Head lines
     def header(line, field):
-        start = field.strip() + ' '
+        start = field.strip() + " "
         n = len(start)
         if line[:n] != start:
             raise Exception(
-                f'Unexpected header line. Got "{line}", expecting "{start}".')
+                f'Unexpected header line. Got "{line}", expecting "{start}".'
+            )
         return int(line[n:])
 
     # Ncols and nrows
-    ncols = header(lines[0], 'ncols')
-    nrows = header(lines[1], 'nrows')
+    ncols = header(lines[0], "ncols")
+    nrows = header(lines[1], "nrows")
 
     # Offset
-    xll = header(lines[2], 'xllcorner') // resolution
-    yll = header(lines[3], 'yllcorner') // resolution
+    xll = header(lines[2], "xllcorner") // resolution
+    yll = header(lines[3], "yllcorner") // resolution
 
     # Resolution
-    cellsize = header(lines[4], 'cellsize')
+    cellsize = header(lines[4], "cellsize")
     if cellsize != resolution:
         raise Exception(
-            f'Unexpected resolution. Got {cellsize}, expecting {resolution}.')
+            f"Unexpected resolution. Got {cellsize}, expecting {resolution}."
+        )
 
     # Optional missing value indicator
     missing = None
     offset = 5
-    if lines[offset].startswith('nodata_value '):
+    if lines[offset].startswith("nodata_value "):
         missing = lines[offset].split()[1:2]
         offset += 1
 
     # Read data
     data = np.genfromtxt(
         lines[offset:],
-        delimiter=' ',
+        delimiter=" ",
         missing_values=missing,
         filling_values=[np.nan],
         max_rows=nrows,
@@ -368,7 +375,7 @@ def read_asc(handle, heights, resolution):
     assert data.shape == (nrows, ncols)
 
     # Insert data into vector
-    heights[yll:yll + nrows, xll:xll + ncols] = data[::-1, :]
+    heights[yll: yll + nrows, xll: xll + ncols] = data[::-1, :]
 
 
 def fix_sea_levels_in_odd_squares(heights):
@@ -377,59 +384,59 @@ def fix_sea_levels_in_odd_squares(heights):
     heights in the data set.
     """
     # Fix sea level in NT68 (last checked on 2022-06-27)
-    x, w = nevis.Coords.from_square_with_size('NT68')
+    x, w = nevis.Coords.from_square_with_size("NT68")
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
-    view = heights[y:y + w, x:x + w]
+    view = heights[y: y + w, x: x + w]
     view[view < 2.5] -= 2.1
 
     # Fix sea level in NR24, 34, 44 (last checked on 2022-06-27)
-    x, w = nevis.Coords.from_square_with_size('NR24')
+    x, w = nevis.Coords.from_square_with_size("NR24")
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
-    view = heights[y:y + w, x:x + 3 * w]
+    view = heights[y: y + w, x: x + 3 * w]
     view[view < 0.2] -= 10
 
     # Fix sea level in NR33 (last checked on 2022-06-27)
-    x, w = nevis.Coords.from_square_with_size('NR33')
+    x, w = nevis.Coords.from_square_with_size("NR33")
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
-    view = heights[y:y + w, x:x + w]
+    view = heights[y: y + w, x: x + w]
     view[view < 0.2] -= 10
 
     # Fix sea level in NR35 (last checked on 2022-06-27)
-    x, w = nevis.Coords.from_square_with_size('NR35')
+    x, w = nevis.Coords.from_square_with_size("NR35")
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
-    view = heights[y:y + w, x:x + w]
+    view = heights[y: y + w, x: x + w]
     view[view < 0.2] -= 0.5
 
     # Fix sea level in NR56 (last checked on 2022-06-27)
-    x, w = nevis.Coords.from_square_with_size('NR56')
+    x, w = nevis.Coords.from_square_with_size("NR56")
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
-    view = heights[y:y + w, x:x + w]
+    view = heights[y: y + w, x: x + w]
     view[view < 0.1] = -10
 
     # Fix sea level in NR57 (last checked on 2022-06-27)
-    x, w = nevis.Coords.from_square_with_size('NR57')
+    x, w = nevis.Coords.from_square_with_size("NR57")
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
-    view = heights[y:y + w, x:x + w]
+    view = heights[y: y + w, x: x + w]
     view[view < 0.1] -= 0.5
 
     # Fix sea level in NR76 (last checked on 2022-06-27)
-    x, w = nevis.Coords.from_square_with_size('NR76')
+    x, w = nevis.Coords.from_square_with_size("NR76")
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
-    view = heights[y:y + w, x:x + w]
+    view = heights[y: y + w, x: x + w]
     view[view < 0.1] -= 0.5
 
     # Fix sea level in NR65,75,64,74 (last checked on 2022-06-27)
-    x, w = nevis.Coords.from_square_with_size('NR64')
+    x, w = nevis.Coords.from_square_with_size("NR64")
     x, y = x.grid[0] // resolution, x.grid[1] // resolution
     w = w // resolution
-    view = heights[y:y + 2 * w, x:x + 2 * w]
+    view = heights[y: y + 2 * w, x: x + 2 * w]
     view[view < 0.1] = -10
     del view
 
@@ -443,14 +450,14 @@ def save_cambridgeshire(heights):
 
     # Block river Great Ouse in TF 50, stopping a lot of flooding in
     # cambridgeshire.
-    #heights[6047, 11183] = 0.01   # Worked 2022-06-27, but not 2023-08-31
+    # heights[6047, 11183] = 0.01   # Worked 2022-06-27, but not 2023-08-31
     heights[6196, 11197] = 0.01
 
     # Block river Yare in TG 50, and Oulton Dyke in TM59, stopping lots of
     # flooding near Norwich.
     # Note: Both must be set to see an effect.
-    heights[6151, 13041] = 0.01   # TG50
-    heights[5851, 13013] = 0.01   # TM59
+    heights[6151, 13041] = 0.01  # TG50
+    heights[5851, 13013] = 0.01  # TM59
 
 
 def inland_below_sea_level_points(heights, s, print_to_screen=True):
@@ -460,7 +467,7 @@ def inland_below_sea_level_points(heights, s, print_to_screen=True):
     """
     y, x = np.nonzero(np.logical_and(heights < 0, heights > s))
     p = y * heights.shape[1] + x
-    assert np.max(p) < 2**32, 'Not-sea point does not fit uint32'
+    assert np.max(p) < 2**32, "Not-sea point does not fit uint32"
     return np.array(p, dtype=np.uint32)
 
 
@@ -471,7 +478,7 @@ def set_sea_level(heights, s, print_to_screen=True):
     """
     # Find a "sea mask", set all pixels to s
     if print_to_screen:
-        print('Creating sea bitmask...')
+        print("Creating sea bitmask...")
     t = nevis.Timer()
 
     # Treat each square separately, starting bottom left and spiraling inwards
@@ -498,7 +505,7 @@ def set_sea_level(heights, s, print_to_screen=True):
             if print_to_screen:
                 iters += 1
                 if iters % 100 == 0:
-                    print('.', end=(None if (iters // 100) % 79 == 0 else ''))
+                    print(".", end=(None if (iters // 100) % 79 == 0 else ""))
                     sys.stdout.flush()
 
             # Create views of center of square, plus neighbours
@@ -510,16 +517,21 @@ def set_sea_level(heights, s, print_to_screen=True):
             x1, y1 = min(x1, nx - 1), min(y1, ny - 1)
 
             # Create view and views of neighbours
-            v = heights[y0: y1, x0: x1]
-            v0 = heights[y0 + 1: y1 + 1, x0: x1]  # Above
-            v1 = heights[y0 - 1: y1 - 1, x0: x1]  # Below
-            v2 = heights[y0: y1, x0 - 1: x1 - 1]  # Left
-            v3 = heights[y0: y1, x0 + 1: x1 + 1]  # Right
+            v = heights[y0:y1, x0:x1]
+            v0 = heights[y0 + 1: y1 + 1, x0:x1]  # Above
+            v1 = heights[y0 - 1: y1 - 1, x0:x1]  # Below
+            v2 = heights[y0:y1, x0 - 1: x1 - 1]  # Left
+            v3 = heights[y0:y1, x0 + 1: x1 + 1]  # Right
 
             # Skip easy squares
             if np.all(v < 0):
-                if (np.any(v == s) | np.any(v0 == s) | np.any(v1 == s)
-                        | np.any(v2 == s) | np.any(v3 == s)):
+                if (
+                    np.any(v == s)
+                    | np.any(v0 == s)
+                    | np.any(v1 == s)
+                    | np.any(v2 == s)
+                    | np.any(v3 == s)
+                ):
                     v[:] = s
                     skip.append(i)
                     changed = True
@@ -531,14 +543,17 @@ def set_sea_level(heights, s, print_to_screen=True):
 
             kmax = 1000
             for k in range(1000):
-                n = (v <= 0) & (v != s) & (
-                    (v0 == s) | (v1 == s) | (v2 == s) | (v3 == s))
+                n = (
+                    (v <= 0)
+                    & (v != s)
+                    & ((v0 == s) | (v1 == s) | (v2 == s) | (v3 == s))
+                )
                 if not np.any(n):
                     break
                 v[n] = s
                 changed = True
             if k + 1 == kmax:
-                print('WARNING: Reached kmax')
+                print("WARNING: Reached kmax")
 
         for i in reversed(skip):
             del squares[i]
@@ -548,10 +563,10 @@ def set_sea_level(heights, s, print_to_screen=True):
             break
 
     if z + 1 == zmax:
-        print('WARNING: Reached zmax')
+        print("WARNING: Reached zmax")
 
     if print_to_screen:
-        print(f'\nFinished, after {t.format()}')
+        print(f"\nFinished, after {t.format()}")
 
 
 def add_sea_slope(heights, s, print_to_screen=True):
@@ -561,7 +576,7 @@ def add_sea_slope(heights, s, print_to_screen=True):
     The input should be a ``heights`` array in which all points known to be sea
     (and only those points) have been set to height ``s``.
     """
-    print('Adding slope to sea bed')
+    print("Adding slope to sea bed")
     t = nevis.Timer()
 
     h = 0.01  # slope per square
@@ -591,38 +606,46 @@ def add_sea_slope(heights, s, print_to_screen=True):
         div = 1 if len(x) > 300000 else (10 if len(x) > 50000 else 100)
         if i % div == 0:
             j += 1
-            print('.', end=(None if j % 79 == 0 else ''))
+            print(".", end=(None if j % 79 == 0 else ""))
             sys.stdout.flush()
 
         # Move down
         ok = np.nonzero(y > 0)
         yd, xd = y[ok] - 1, x[ok]
-        ok = np.nonzero((heights[yd, xd] == s)
-                        | (heights[yd, xd] < heights[yd + 1, xd] - h))
+        ok = np.nonzero(
+            (heights[yd, xd] == s)
+            | (heights[yd, xd] < heights[yd + 1, xd] - h)
+        )
         yd, xd = yd[ok], xd[ok]
         heights[yd, xd] = heights[yd + 1, xd] - h
 
         # Move up
         ok = np.nonzero(y < ny - 1)
         yu, xu = y[ok] + 1, x[ok]
-        ok = np.nonzero((heights[yu, xu] == s)
-                        | (heights[yu, xu] < heights[yu - 1, xu] - h))
+        ok = np.nonzero(
+            (heights[yu, xu] == s)
+            | (heights[yu, xu] < heights[yu - 1, xu] - h)
+        )
         yu, xu = yu[ok], xu[ok]
         heights[yu, xu] = heights[yu - 1, xu] - h
 
         # Move left
         ok = np.nonzero(x > 0)
         yl, xl = y[ok], x[ok] - 1
-        ok = np.nonzero((heights[yl, xl] == s)
-                        | (heights[yl, xl] < heights[yl, xl + 1] - h))
+        ok = np.nonzero(
+            (heights[yl, xl] == s)
+            | (heights[yl, xl] < heights[yl, xl + 1] - h)
+        )
         yl, xl = yl[ok], xl[ok]
         heights[yl, xl] = heights[yl, xl + 1] - h
 
         # Move right
         ok = np.nonzero(x < nx - 1)
         yr, xr = y[ok], x[ok] + 1
-        ok = np.nonzero((heights[yr, xr] == s)
-                        | (heights[yr, xr] < heights[yr, xr - 1] - h))
+        ok = np.nonzero(
+            (heights[yr, xr] == s)
+            | (heights[yr, xr] < heights[yr, xr - 1] - h)
+        )
         yr, xr = yr[ok], xr[ok]
         heights[yr, xr] = heights[yr, xr - 1] - h
 
@@ -634,7 +657,7 @@ def add_sea_slope(heights, s, print_to_screen=True):
 
     heights[heights < s] -= s
 
-    print(f'\nFinished, after {t.format()}')
+    print(f"\nFinished, after {t.format()}")
 
 
 def _spiral_squares(heights, d):

@@ -11,20 +11,20 @@ import sys
 
 
 def printline():
-    """ Utility method for printing horizontal lines. """
-    print('-' * 60)
+    """Utility method for printing horizontal lines."""
+    print("-" * 60)
 
 
 def colored(color, text):
-    """ Utility method for printing colored text. """
+    """Utility method for printing colored text."""
     colors = {
-        'normal': '\033[0m',
-        'warning': '\033[93m',
-        'fail': '\033[91m',
-        'bold': '\033[1m',
-        'underline': '\033[4m',
+        "normal": "\033[0m",
+        "warning": "\033[93m",
+        "fail": "\033[91m",
+        "bold": "\033[1m",
+        "underline": "\033[4m",
     }
-    return colors[color] + str(text) + colors['normal']
+    return colors[color] + str(text) + colors["normal"]
 
 
 def test_documentation():
@@ -32,7 +32,7 @@ def test_documentation():
     Checks if the documentation can be built, runs all doc tests, exits if
     anything fails.
     """
-    print('Checking documentation coverage.')
+    print("Checking documentation coverage.")
 
     # Scan for classes and functions
     modules, classes, functions = test_doc_coverage_get_objects()
@@ -45,15 +45,17 @@ def test_documentation():
         sys.exit(1)
 
     # Build docs and run doc tests
-    print('Building docs and running doctests.')
-    p = subprocess.Popen([
-        'sphinx-build',
-        '-b',
-        'doctest',
-        'docs/source',
-        'docs/build/html',
-        '-W',
-    ])
+    print("Building docs and running doctests.")
+    p = subprocess.Popen(
+        [
+            "sphinx-build",
+            "-b",
+            "doctest",
+            "docs/source",
+            "docs/build/html",
+            "-W",
+        ]
+    )
     try:
         ret = p.wait()
     except KeyboardInterrupt:
@@ -62,10 +64,10 @@ def test_documentation():
         except OSError:
             pass
         p.wait()
-        print('')
+        print("")
         sys.exit(1)
     if ret != 0:
-        print('FAILED')
+        print("FAILED")
         sys.exit(ret)
 
 
@@ -76,32 +78,32 @@ def test_doc_coverage(classes, functions):
     """
 
     doc_files = []
-    for root, dirs, files in os.walk(os.path.join('docs', 'source')):
+    for root, dirs, files in os.walk(os.path.join("docs", "source")):
         for file in files:
-            if file.endswith('.rst'):
+            if file.endswith(".rst"):
                 doc_files.append(os.path.join(root, file))
 
     # Regular expression that would find either 'module' or 'currentmodule':
     # this needs to be prepended to the symbols as x.y.z != x.z
-    regex_module = re.compile(r'\.\.\s*\S*module\:\:\s*(\S+)')
+    regex_module = re.compile(r"\.\.\s*\S*module\:\:\s*(\S+)")
 
     # Regular expressions to find autoclass and autofunction specifiers
-    regex_class = re.compile(r'\.\.\s*autoclass\:\:\s*(\S+)')
-    regex_funct = re.compile(r'\.\.\s*autofunction\:\:\s*(\S+)')
+    regex_class = re.compile(r"\.\.\s*autoclass\:\:\s*(\S+)")
+    regex_funct = re.compile(r"\.\.\s*autofunction\:\:\s*(\S+)")
 
     # Identify all instances of autoclass and autofunction in all rst files
     doc_classes = []
     doc_functions = []
     for doc_file in doc_files:
-        with open(doc_file, 'r') as f:
+        with open(doc_file, "r") as f:
             # We need to identify which module each class or function is in
-            module = ''
+            module = ""
             for line in f.readlines():
                 m_match = re.search(regex_module, line)
                 c_match = re.search(regex_class, line)
                 f_match = re.search(regex_funct, line)
                 if m_match:
-                    module = m_match.group(1) + '.'
+                    module = m_match.group(1) + "."
                 elif c_match:
                     doc_classes.append(module + c_match.group(1))
                 elif f_match:
@@ -122,31 +124,47 @@ def test_doc_coverage(classes, functions):
     if undoc_classes:
         n = len(undoc_classes)
         printline()
-        print('Found (' + str(n) + ') classes without documentation:')
-        print('\n'.join(
-            '  ' + colored('warning', y) for y in sorted(undoc_classes)))
+        print("Found (" + str(n) + ") classes without documentation:")
+        print(
+            "\n".join(
+                "  " + colored("warning", y) for y in sorted(undoc_classes)
+            )
+        )
     if undoc_functions:
         n = len(undoc_functions)
         printline()
-        print('Found (' + str(n) + ') functions without documentation:')
-        print('\n'.join(
-            '  ' + colored('warning', y) for y in sorted(undoc_functions)))
+        print("Found (" + str(n) + ") functions without documentation:")
+        print(
+            "\n".join(
+                "  " + colored("warning", y) for y in sorted(undoc_functions)
+            )
+        )
     if extra_classes:
         n = len(extra_classes)
         printline()
-        print('Found (' + str(n) + ') documented but unknown classes:')
-        print('\n'.join(
-            '  ' + colored('warning', y) for y in sorted(extra_classes)))
+        print("Found (" + str(n) + ") documented but unknown classes:")
+        print(
+            "\n".join(
+                "  " + colored("warning", y) for y in sorted(extra_classes)
+            )
+        )
     if extra_functions:
         n = len(extra_functions)
         printline()
-        print('Found (' + str(n) + ') documented but unknown classes:')
-        print('\n'.join(
-            '  ' + colored('warning', y) for y in sorted(extra_functions)))
-    n = (len(undoc_classes) + len(undoc_functions)
-         + len(extra_classes) + len(extra_functions))
+        print("Found (" + str(n) + ") documented but unknown classes:")
+        print(
+            "\n".join(
+                "  " + colored("warning", y) for y in sorted(extra_functions)
+            )
+        )
+    n = (
+        len(undoc_classes)
+        + len(undoc_functions)
+        + len(extra_classes)
+        + len(extra_functions)
+    )
     printline()
-    print('Found total of (' + str(n) + ') mismatches.')
+    print("Found total of (" + str(n) + ") mismatches.")
 
     return n == 0
 
@@ -156,42 +174,43 @@ def test_doc_coverage_get_objects():
     Scans nevis and returns a list of modules, a list of classes, and a list of
     functions.
     """
-    print('Finding nevis modules...')
+    print("Finding nevis modules...")
 
     def find_modules(root, modules=[], ignore=[]):
-        """ Find all modules in the given directory. """
+        """Find all modules in the given directory."""
 
         # Get root as module
-        module_root = root.replace('/', '.')
+        module_root = root.replace("/", ".")
 
         # Check if this path is on the ignore list
         if root in ignore:
             return modules
 
         # Check if this is a module
-        if os.path.isfile(os.path.join(root, '__init__.py')):
+        if os.path.isfile(os.path.join(root, "__init__.py")):
             modules.append(module_root)
         else:
             return modules
 
         # Look for submodules
         for name in os.listdir(root):
-            if name[:1] == '_' or name[:1] == '.':
+            if name[:1] == "_" or name[:1] == ".":
                 continue
             path = os.path.join(root, name)
             if os.path.isdir(path):
                 find_modules(path, modules, ignore)
             else:
                 base, ext = os.path.splitext(name)
-                if ext == '.py':
-                    modules.append(module_root + '.' + base)
+                if ext == ".py":
+                    modules.append(module_root + "." + base)
 
         # Return found
         return modules
 
     # Get modules
     import nevis
-    modules = find_modules('nevis', ignore=['nevis/tests'])
+
+    modules = find_modules("nevis", ignore=["nevis/tests"])
 
     # Import all modules
     for module in modules:
@@ -201,7 +220,7 @@ def test_doc_coverage_get_objects():
     def scan(module, root, pref, modules, classes, functions):
         nroot = len(root)
         for name, member in inspect.getmembers(module):
-            if name[0] == '_':
+            if name[0] == "_":
                 # Don't include private members
                 continue
 
@@ -221,41 +240,46 @@ def test_doc_coverage_get_objects():
                 if full_name in modules:
                     continue
                 modules.add(full_name)
-                mpref = full_name + '.'
+                mpref = full_name + "."
                 mroot = os.path.join(root, name)
                 scan(member, mroot, mpref, modules, classes, functions)
 
             # Class
             elif inspect.isclass(member):
                 mod = member.__module__
-                if mod == 'nevis' or mod.startswith('nevis.'):
+                if mod == "nevis" or mod.startswith("nevis."):
                     classes.add(full_name)
 
             # Function
             elif inspect.isfunction(member):
                 mod = member.__module__
-                if mod == 'nevis' or mod.startswith('nevis.'):
+                if mod == "nevis" or mod.startswith("nevis."):
                     functions.add(full_name)
 
         return
 
     # Scan and return
-    print('Scanning nevis modules...')
+    print("Scanning nevis modules...")
     module = nevis
     modules = set()
     classes = set()
     functions = set()
     root = os.path.dirname(module.__file__)
-    pre = module.__name__ + '.'
+    pre = module.__name__ + "."
     scan(module, root, pre, modules, classes, functions)
 
     print(
-        'Found (' + str(len(modules)) + ') modules, identified ('
-        + str(len(classes)) + ') classes and (' + str(len(functions))
-        + ') functions.')
+        "Found ("
+        + str(len(modules))
+        + ") modules, identified ("
+        + str(len(classes))
+        + ") classes and ("
+        + str(len(functions))
+        + ") functions."
+    )
 
     return modules, classes, functions
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_documentation()

@@ -11,14 +11,14 @@ import numpy as np
 import nevis
 
 # Don't downsample
-sys.argv = [x for x in sys.argv if x != '-debug']
+sys.argv = [x for x in sys.argv if x != "-debug"]
 
 # Load height data
-nevis.howdy('Interpolation')
+nevis.howdy("Interpolation")
 heights = nevis.gb()
 ny, nx = heights.shape
 r = nevis.spacing()
-r2 = r // 2             # Height is taken at center of grid square
+r2 = r // 2  # Height is taken at center of grid square
 
 #
 # Squares and objects to draw on the maps
@@ -41,7 +41,7 @@ labels = {}
 #
 # Ben Nevis 216666 771288
 #
-labels['Ben Nevis'] = nevis.ben()
+labels["Ben Nevis"] = nevis.ben()
 square = [210000, 224000, 764000, 778000]
 lines = []
 # Vertical, from valley to peak
@@ -57,7 +57,7 @@ squares.append((square, lines, False))
 #
 # The (firth of) clyde near Dumbarton Rock NS 4001 7391
 #
-labels['Dumbarton rock'] = nevis.Coords.from_square('NS 39931 74494')
+labels["Dumbarton rock"] = nevis.Coords.from_square("NS 39931 74494")
 #         239784  239931  672520  674494
 square = [233000, 247000, 667000, 681000]
 lines = []
@@ -70,7 +70,7 @@ squares.append((square, lines, True))
 #
 # Margate, near Dreamland and its Scenic Railway coaster 635107, 170534
 #
-labels['Scenic railway'] = nevis.Coords.from_square('TR 35107 70534')
+labels["Scenic railway"] = nevis.Coords.from_square("TR 35107 70534")
 square = [630000, 645000, 159000, 174000]
 lines = []
 # From margate vertically into the sea
@@ -96,9 +96,9 @@ squares.append((square, lines, True))
 #
 # Sea issues NR35,24,34,44,33: Islay, south-east coast
 #
-labels['Laphroig'] = nevis.Coords(138639, 645208)
-labels['Lagavulin'] = nevis.Coords(140190, 645660)
-labels['Ardbeg'] = nevis.Coords(141478, 646419)
+labels["Laphroig"] = nevis.Coords(138639, 645208)
+labels["Lagavulin"] = nevis.Coords(140190, 645660)
+labels["Ardbeg"] = nevis.Coords(141478, 646419)
 square = [119000, 151000, 629000, 661000]
 lines = []
 # Horizontally through squares
@@ -111,7 +111,7 @@ squares.append((square, lines, True))
 #
 # Sea issues: NR56,57: Jura south-east coast
 #
-labels['Jura distillery'] = nevis.Coords(152809, 666895)
+labels["Jura distillery"] = nevis.Coords(152809, 666895)
 square = [144000, 166000, 659000, 681000]
 lines = []
 # Horizontally through squares
@@ -182,7 +182,7 @@ squares.append((square, lines, True))
 #
 # Get interpolants
 #
-name = 'interpolation'
+name = "interpolation"
 f = nevis.linear_interpolant()
 g = nevis.spline(verbose=True)
 h = lambda x, y: 1 if nevis.is_sea(nevis.Coords(x, y)) else 0
@@ -190,29 +190,27 @@ h = lambda x, y: 1 if nevis.is_sea(nevis.Coords(x, y)) else 0
 #
 # Ensure results directory exists
 #
-root = 'results'
+root = "results"
 if not os.path.isdir(root):
     os.makedirs(root)
 
 #
 # Figure: Full map
 #
-cmap = matplotlib.cm.get_cmap('tab10', 10)
-fig, ax, data, ff = nevis.plot(
-    zoom=0.03,
-    headless=True)
+cmap = matplotlib.cm.get_cmap("tab10", 10)
+fig, ax, data, ff = nevis.plot(zoom=0.03, headless=True)
 for ii, sq in enumerate(squares):
     square, line, show_sea_mask = sq
     x0, x1, y0, y1 = square
     x0, y0 = ff(x0, y0)
     x1, y1 = ff(x1, y1)
     a, b = [x0, x1, x1, x0, x0], [y0, y0, y1, y1, y0]
-    ax.plot(a, b, 'w', lw=3)
-    ax.plot(a, b, label=f'Square {ii + 1}')
-ax.legend(loc='upper left')
-path = os.path.join(root, f'{name}-check-0-map-full.png')
+    ax.plot(a, b, "w", lw=3)
+    ax.plot(a, b, label=f"Square {ii + 1}")
+ax.legend(loc="upper left")
+path = os.path.join(root, f"{name}-check-0-map-full.png")
 print()
-print(f'Saving figure to {path}.')
+print(f"Saving figure to {path}.")
 fig.savefig(path)
 
 #
@@ -225,23 +223,25 @@ for ii, sq in enumerate(squares):
         labels=labels,
         zoom=1,
         small_grid=True,
-        headless=True)
+        headless=True,
+    )
     for jj, line in enumerate(lines):
         x0, x1, y0, y1 = line
         a0, b0 = ff(x0, y0)
         a1, b1 = ff(x1, y1)
         c, d = 0.1 * (a1 - a0), 0.1 * (b1 - b0)
         color = cmap(jj) if jj < 2 else cmap(1 + jj)
-        ax.plot([a0, a1], [b0, b1], label=f'line {jj + 1}', color=color)
+        ax.plot([a0, a1], [b0, b1], label=f"line {jj + 1}", color=color)
         ax.plot(
             [a1, a1 - c + d, a1 - c - d, a1],
             [b1, b1 - d - c, b1 - d + c, b1],
-            color=color)
+            color=color,
+        )
     if lines:
-        ax.legend(loc='lower right')
+        ax.legend(loc="lower right")
 
-    path = os.path.join(root, f'{name}-check-{ii + 1}-0-map.png')
-    print(f'Saving figure to {path}.')
+    path = os.path.join(root, f"{name}-check-{ii + 1}-0-map.png")
+    print(f"Saving figure to {path}.")
     fig.savefig(path)
 
     # Figure 3: Line from known top to you
@@ -251,11 +251,12 @@ for ii, sq in enumerate(squares):
         x0, x1, y0, y1 = line
         p0, p1 = nevis.Coords(x0, y0), nevis.Coords(x1, y1)
         fig, ax, q0, q1 = nevis.plot_line(
-            fs, p0, p1, figsize=(14, 10), evaluations=1000, headless=True)
+            fs, p0, p1, figsize=(14, 10), evaluations=1000, headless=True
+        )
         ax.minorticks_on()
-        ax.grid(which='major')
-        ax.grid(which='minor', color='#eeeeee')
-        label = f'Line {jj + 1}'
+        ax.grid(which="major")
+        ax.grid(which="minor", color="#eeeeee")
+        label = f"Line {jj + 1}"
 
         # Compare with grid points
         if x0 % r == x1 % r == y0 % r == y1 % r == r2:
@@ -271,11 +272,11 @@ for ii, sq in enumerate(squares):
                 ok = np.nonzero((ss >= 0) & (ss < ny))
                 if np.any(ok):
                     ss = [heights[s, j0] for s in ss[ok]]
-                    ax.plot(ts[ok], ss, '+', label='Data values')
+                    ax.plot(ts[ok], ss, "+", label="Data values")
                     if np.min(ss) <= 0 and np.max(ss) >= 0:
-                        ax.axhline(0, color='k', lw=0.5, alpha=0.2)
-                ax.legend(loc='center left')
-                label += ', Vertical'
+                        ax.axhline(0, color="k", lw=0.5, alpha=0.2)
+                ax.legend(loc="center left")
+                label += ", Vertical"
 
             elif y0 == y1:
                 i0 = y0 // r
@@ -287,13 +288,13 @@ for ii, sq in enumerate(squares):
                 ok = np.nonzero((ss >= 0) & (ss < nx))
                 if np.any(ok):
                     ss = np.array([heights[i0, s] for s in ss[ok]])
-                    ax.plot(ts[ok], ss, '+', label='Data values')
+                    ax.plot(ts[ok], ss, "+", label="Data values")
                     if np.min(ss) <= 0 and np.max(ss) >= 0:
-                        ax.axhline(0, color='k', lw=0.5, alpha=0.4)
-                ax.legend(loc='center left')
-                label += ', Horizontal'
+                        ax.axhline(0, color="k", lw=0.5, alpha=0.4)
+                ax.legend(loc="center left")
+                label += ", Horizontal"
 
-            elif (abs(y1 - y0) == abs(x1 - x0)):
+            elif abs(y1 - y0) == abs(x1 - x0):
                 pad = min(abs(q0.grid[0] - x0), abs(q0.grid[1] - y0)) // r
                 sx = 1 if x1 > x0 else -1
                 sy = 1 if y1 > y0 else -1
@@ -309,15 +310,14 @@ for ii, sq in enumerate(squares):
                 if np.any(ok):
                     ss = [heights[j, i] for j, i in zip(sy[ok], sx[ok])]
                     ts = np.sqrt(tjs**2 + tis**2) * np.sign(tjs)
-                    ax.plot(ts[ok], ss, '+', label='Data values')
+                    ax.plot(ts[ok], ss, "+", label="Data values")
                     if np.min(ss) <= 0 and np.max(ss) >= 0:
-                        ax.axhline(0, color='k', lw=0.5, alpha=0.2)
-                ax.legend(loc='center left')
-                label += ', Diagonal'
+                        ax.axhline(0, color="k", lw=0.5, alpha=0.2)
+                ax.legend(loc="center left")
+                label += ", Diagonal"
 
-            fig.text(0.99, 0.97, label, ha='right', va='center')
+            fig.text(0.99, 0.97, label, ha="right", va="center")
 
-        path = os.path.join(root, f'{name}-check-{ii + 1}-{jj + 1}-line.png')
-        print(f'Saving figure to {path}.')
+        path = os.path.join(root, f"{name}-check-{ii + 1}-{jj + 1}-line.png")
+        print(f"Saving figure to {path}.")
         fig.savefig(path)
-

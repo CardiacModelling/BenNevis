@@ -38,6 +38,7 @@ class linear_interpolant(object):
         print(f"Height: {z:.2f} m, gradient: ({gx:.2f} m/m, {gy:.2f} m/m)")
 
     """
+
     # Note: This is technically a class, but used as a function here so
     # following the underscore naming convention.
 
@@ -105,21 +106,21 @@ def spline(verbose=False):
 
     # Load pickled spline
     s = None
-    cached = os.path.join(nevis._DIR_DATA, 'spline')
+    cached = os.path.join(nevis._DIR_DATA, "spline")
     if os.path.isfile(cached):
         if verbose:
-            print('Loading cached spline...')
+            print("Loading cached spline...")
         try:
-            with open(cached, 'rb') as f:
+            with open(cached, "rb") as f:
                 s = pickle.load(f)
         except Exception:
             if verbose:
-                print('Loading failed.')
+                print("Loading failed.")
 
     # Create new spline
     if s is None:
         if verbose:
-            print('Reticulating splines...')
+            print("Reticulating splines...")
         width, height = nevis.dimensions()
         ny, nx = heights.shape
         c = 25  # Correction: Coords at lower-left, height is center of square
@@ -130,15 +131,15 @@ def spline(verbose=False):
             heights,
         )
         if verbose:
-            print(f'Completed in {t.format()}')
+            print(f"Completed in {t.format()}")
 
         # Cache to disk
         if verbose:
-            print('Caching spline to disk...')
+            print("Caching spline to disk...")
             t = nevis.Timer()
-        with open(cached, 'wb') as f:
+        with open(cached, "wb") as f:
             pickle.dump(s, f)
         if verbose:
-            print(f'Completed in {t.format()}')
+            print(f"Completed in {t.format()}")
 
     return lambda x, y: s(y, x)[0][0]

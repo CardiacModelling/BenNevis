@@ -35,21 +35,21 @@ width, height = 700000, 1300000
 
 
 # Hill names
-hill_zip = os.path.join(nevis._DIR_MODULE_DATA, 'hills.zip')
-hill_file = 'hills.csv'
+hill_zip = os.path.join(nevis._DIR_MODULE_DATA, "hills.zip")
+hill_file = "hills.csv"
 
 # Grid letters (bottom to top, left to right)
 GL = [
-    ['V', 'W', 'X', 'Y', 'Z'],
-    ['Q', 'R', 'S', 'T', 'U'],
-    ['L', 'M', 'N', 'O', 'P'],
-    ['F', 'G', 'H', 'J', 'K'],
-    ['A', 'B', 'C', 'D', 'E'],
+    ["V", "W", "X", "Y", "Z"],
+    ["Q", "R", "S", "T", "U"],
+    ["L", "M", "N", "O", "P"],
+    ["F", "G", "H", "J", "K"],
+    ["A", "B", "C", "D", "E"],
 ]
 
 
 def dimensions():
-    """ Returns the dimensions of the grid (width, height) in meters. """
+    """Returns the dimensions of the grid (width, height) in meters."""
     return width, height
 
 
@@ -61,9 +61,9 @@ def squares():
     squares = []
 
     d = 100000
-    i0, i1 = 1, 0   # Start on 2nd row (QRSTU)
+    i0, i1 = 1, 0  # Start on 2nd row (QRSTU)
     for y in range(0, height, d):
-        j0, j1 = 2, 0   # Start on 2nd letter (S,N)
+        j0, j1 = 2, 0  # Start on 2nd letter (S,N)
         for x in range(0, width, d):
             squares.append((GL[i0][j0] + GL[i1][j1], x, y))
             j1 += 1
@@ -116,8 +116,9 @@ class Coords(object):
                 self._gridy = int(self._normy * height)
         if self._gridx is None:
             raise ValueError(
-                'Either (gridx and gridy) or (normx and normy) must be'
-                'specified (and not both).')
+                "Either (gridx and gridy) or (normx and normy) must be"
+                "specified (and not both)."
+            )
 
         self._latlong = None
         self._square = None
@@ -150,13 +151,13 @@ class Coords(object):
                 x, y = int(x), int(y)
 
                 # Make string
-                self._square = name, f'{x:0>5}', f'{y:0>5}'
+                self._square = name, f"{x:0>5}", f"{y:0>5}"
             except KeyError:
                 self._square = False
 
         # Make string
         if self._square is False:
-            return 'Off the grid'
+            return "Off the grid"
 
         name, x, y = self._square
         return name + x[:n] + y[:n]
@@ -179,17 +180,19 @@ class Coords(object):
         code = square.strip().upper()
         if len(code) < 1:
             raise ValueError(
-                'Invalid BNG grid reference: must be at least 1 letter')
+                "Invalid BNG grid reference: must be at least 1 letter"
+            )
 
         def find(letter):
             """
             Find lower-left coordinates. Big squares are 500km, small 100km.
             """
             for i, row in enumerate(GL):
-                if letter >= row[0] and letter != 'I':
+                if letter >= row[0] and letter != "I":
                     return i, row.index(letter)
             raise ValueError(
-                f'Invalid BNG grid letter "{letter}" in code "{square}".')
+                f'Invalid BNG grid letter "{letter}" in code "{square}".'
+            )
 
         # Origin of letter system is V, BNG starts at S
         x, y = -1000000, -500000
@@ -212,8 +215,9 @@ class Coords(object):
             n = len(numbers)
             if n % 2 == 1:
                 raise ValueError(
-                    f'Invalid BNG grid code: {square} numbers must have same'
-                    ' number of digits.')
+                    f"Invalid BNG grid code: {square} numbers must have same"
+                    " number of digits."
+                )
             n = n // 2
             numbers = (numbers[:n], numbers[n:])
         else:
@@ -223,13 +227,15 @@ class Coords(object):
             a, b = int(numbers[0]), int(numbers[1])
         except ValueError:
             raise ValueError(
-                f'Invalid BNG grid code: {square} numbers must be integers.')
+                f"Invalid BNG grid code: {square} numbers must be integers."
+            )
         if a < 0 or b < 0:
             raise ValueError(
-                f'Invalid BNG grid code: {square} numbers must be positive.')
+                f"Invalid BNG grid code: {square} numbers must be positive."
+            )
 
         # Calculate square size
-        m = 10**(5 - n)
+        m = 10 ** (5 - n)
 
         # Final grid coordinates
         x, y = x + a * m, y + b * m
@@ -275,31 +281,33 @@ class Coords(object):
 
     @property
     def geograph(self):
-        return f'http://www.geograph.org.uk/gridref/{self.square5}'
+        return f"http://www.geograph.org.uk/gridref/{self.square5}"
 
     @property
     def google(self):
         lat, long = self.latlong
         lat, long = round(lat, 6), round(long, 6)
         return (
-            'https://www.google.com/maps/@?api=1&map_action=map'
-            f'&center={lat},{long}&zoom=15&basemap=terrain')
+            "https://www.google.com/maps/@?api=1&map_action=map"
+            f"&center={lat},{long}&zoom=15&basemap=terrain"
+        )
 
     @property
     def osmaps(self):
         lat, long = self.latlong
         lat, long = round(lat, 6), round(long, 6)
         return (
-            f'https://explore.osmaps.com/en/pin?lat={lat}&lon={long}&zoom=17')
+            f"https://explore.osmaps.com/en/pin?lat={lat}&lon={long}&zoom=17"
+        )
 
     @property
     def opentopomap(self):
         lat, long = self.latlong
         lat, long = round(lat, 6), round(long, 6)
-        return f'https://opentopomap.org/#marker=15/{lat}/{long}'
+        return f"https://opentopomap.org/#marker=15/{lat}/{long}"
 
     def __str__(self):
-        return f'Coords({int(round(self._gridx))}, {int(round(self._gridy))})'
+        return f"Coords({int(round(self._gridx))}, {int(round(self._gridy))})"
 
 
 class Hill(object):
@@ -317,6 +325,7 @@ class Hill(object):
         print(h)
 
     """
+
     _hills = []
     _names = {}
     _ids = {}
@@ -324,7 +333,7 @@ class Hill(object):
 
     def __init__(self, x, y, rank, height, hill_id, name):
         if Hill._tree is not None:
-            raise ValueError('Cannot add hills after tree construction.')
+            raise ValueError("Cannot add hills after tree construction.")
         self._x = int(x)
         self._y = int(y)
         self._rank = int(rank)
@@ -338,22 +347,22 @@ class Hill(object):
 
     @staticmethod
     def _load():
-        """ Loads hills into memory. """
+        """Loads hills into memory."""
 
         # Unzip
-        with zipfile.ZipFile(hill_zip, 'r') as f:
-            with f.open(hill_file, 'r') as g:
-                lines = g.read().decode('utf-8')
+        with zipfile.ZipFile(hill_zip, "r") as f:
+            with f.open(hill_file, "r") as g:
+                lines = g.read().decode("utf-8")
         lines = lines.splitlines()
-        rows = iter(csv.reader(lines, delimiter=',', quotechar='"'))
+        rows = iter(csv.reader(lines, delimiter=",", quotechar='"'))
 
         # Parse header
-        fields = ['x', 'y', 'rank', 'meters', 'id', 'name']
+        fields = ["x", "y", "rank", "meters", "id", "name"]
         header = next(rows)
         try:
             indices = [header.index(field) for field in fields]
         except ValueError as e:
-            raise ValueError(f'Unable to read hill-file header: {e}')
+            raise ValueError(f"Unable to read hill-file header: {e}")
 
         # Parse data
         coords = []
@@ -376,7 +385,7 @@ class Hill(object):
 
     @staticmethod
     def by_name(name):
-        """ Return a hill with the given ``name``. """
+        """Return a hill with the given ``name``."""
         if not Hill._hills:
             Hill._load()
         return Hill._names[name.lower()]
@@ -390,9 +399,9 @@ class Hill(object):
         if not Hill._hills:
             Hill._load()
         if rank < 1 or rank > len(Hill._hills):
-            raise ValueError(f'Rank outside of range: {rank}.')
+            raise ValueError(f"Rank outside of range: {rank}.")
         hill = Hill._hills[rank - 1]
-        assert hill.rank == rank, 'Hills not ordered by rank'
+        assert hill.rank == rank, "Hills not ordered by rank"
         return hill
 
     @staticmethod
@@ -429,23 +438,26 @@ class Hill(object):
     @property
     def ranked(self):
         n = self._rank
-        return str(n) + {1: 'st', 2: 'nd', 3: 'rd'}.get(4 if 10 <= n % 100 < 20 else n % 10, "th")
+        return str(n) + {1: "st", 2: "nd", 3: "rd"}.get(
+            4 if 10 <= n % 100 < 20 else n % 10, "th"
+        )
 
     @property
     def summit(self):
-        return f'http://hillsummits.org.uk/htm_summit/{self._id}.htm'
+        return f"http://hillsummits.org.uk/htm_summit/{self._id}.htm"
 
     @property
     def portrait(self):
-        return f'http://hillsummits.org.uk/htm_portrait/{self._id}.htm'
+        return f"http://hillsummits.org.uk/htm_portrait/{self._id}.htm"
 
     def photo(self):
         """
         Attempts to return a URL with a photo. Returns an empty string if none
         is found.
         """
+
         def status(url):
-            request = urllib.request.Request(url, method='HEAD')
+            request = urllib.request.Request(url, method="HEAD")
             try:
                 with urllib.request.urlopen(request) as f:
                     status = f.status
@@ -459,25 +471,25 @@ class Hill(object):
             elif status(self.portrait) != 404:
                 self._photo = self.portrait
             else:
-                self._photo = ''
+                self._photo = ""
         return self._photo
 
     def __str__(self):
-        return f'{self._name} ({self.height}m)'
+        return f"{self._name} ({self.height}m)"
 
 
 def ben():
-    """ Returns the coordinates of Ben Nevis. """
+    """Returns the coordinates of Ben Nevis."""
     return Coords.ben
 
 
 def fen():
-    """ Returns the coordinates of Holme Fen """
+    """Returns the coordinates of Holme Fen"""
     return Coords.fen
 
 
 def pub(name=None):
-    """ Returns coordinates where a mathematician may be found. """
+    """Returns coordinates where a mathematician may be found."""
     if name:
         return Coords.pub[name]
     return random.choice(list(Coords.pub.values()))
@@ -486,12 +498,12 @@ def pub(name=None):
 Coords.ben = Coords(gridx=216666, gridy=771288)
 Coords.fen = Coords(gridx=520483, gridy=289083)
 Coords.pub = {
-    'Bear': Coords(gridx=451473, gridy=206135),
-    'Canal house': Coords(gridx=457307, gridy=339326),
-    'MacSorleys': Coords(gridx=258809, gridy=665079),
-    'Sheffield tap': Coords(gridx=435847, gridy=387030),
-    'Ship Inn': Coords(gridx=293945, gridy=72712),
-    'Laurel Inn': Coords(gridx=495227, gridy=505037),
+    "Bear": Coords(gridx=451473, gridy=206135),
+    "Canal house": Coords(gridx=457307, gridy=339326),
+    "MacSorleys": Coords(gridx=258809, gridy=665079),
+    "Sheffield tap": Coords(gridx=435847, gridy=387030),
+    "Ship Inn": Coords(gridx=293945, gridy=72712),
+    "Laurel Inn": Coords(gridx=495227, gridy=505037),
 }
 
 
@@ -503,10 +515,10 @@ def schiehallion():
 
     This can be used as an easier test problem for local methods.
     """
-    hill = nevis.Hill.by_name('Schiehallion')
+    hill = nevis.Hill.by_name("Schiehallion")
     x, y = hill.coords.grid
     b = 3e3
-    boundaries = [x - b * .7, x + b * 1.1, y - b * .55, y + b * .5]
+    boundaries = [x - b * 0.7, x + b * 1.1, y - b * 0.55, y + b * 0.5]
     return hill, boundaries
 
 
@@ -518,7 +530,7 @@ def macdui():
 
     This can be used as an easier test problem for local methods.
     """
-    hill = nevis.Hill.by_name('Ben Macdui')
+    hill = nevis.Hill.by_name("Ben Macdui")
     x, y = hill.coords.grid
     b = 8e3
     boundaries = [x - b * 1.75, x + b * 2.5, y - b * 1.4, y + b * 1.9]

@@ -17,9 +17,18 @@ import numpy as np
 import nevis
 
 
-def plot(boundaries=None, labels=None, trajectory=None, points=None,
-         scale_bar=True, big_grid=False, small_grid=False,
-         zoom=1 / 27, headless=False, verbose=False):
+def plot(
+    boundaries=None,
+    labels=None,
+    trajectory=None,
+    points=None,
+    scale_bar=True,
+    big_grid=False,
+    small_grid=False,
+    zoom=1 / 27,
+    headless=False,
+    verbose=False,
+):
     """
     Creates a plot of the 2D elevation data in ``heights``.
 
@@ -77,8 +86,8 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     vmin = np.min(heights)
     vmax = np.max(heights)
     if verbose:
-        print(f'Lowest point: {vmin}')
-        print(f'Highest point: {vmax}')
+        print(f"Lowest point: {vmin}")
+        print(f"Highest point: {vmax}")
 
     # Calculate downsampling using zoom
     if zoom > 1:
@@ -90,13 +99,13 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     # Downsample (27 gives me a map that fits on my screen at 100% zoom).
     if downsampling > 1:
         if verbose:
-            print(f'Downsampling with factor {downsampling}')
+            print(f"Downsampling with factor {downsampling}")
         heights = heights[::downsampling, ::downsampling]
         ny, nx = heights.shape
 
     # Select region to plot, and create meters2indices method
-    d_org = d_new = np.array(nevis.dimensions())    # In meters
-    offset = np.array([0, 0])                       # In meters
+    d_org = d_new = np.array(nevis.dimensions())  # In meters
+    offset = np.array([0, 0])  # In meters
     if boundaries is not None:
         xlo, xhi, ylo, yhi = [float(x) for x in boundaries]
 
@@ -117,7 +126,7 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
         offset = np.array([xlo * r, ylo * r])
 
     def meters2indices(x, y):
-        """ Convert meters to array indices (which equal image coordinates) """
+        """Convert meters to array indices (which equal image coordinates)"""
         x = (x - offset[0]) / d_new[0] * nx
         y = (y - offset[1]) / d_new[1] * ny
         try:
@@ -128,26 +137,29 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
 
     # Plot
     if verbose:
-        print('Plotting...')
+        print("Plotting...")
 
     # Create colormap
     # f = absolute height, g = relative to vmax (and zero)
     f = lambda x: (x - vmin) / (vmax - vmin)
     # g = lambda x: f(x * vmax)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-        'soundofmusic', [
-            (0, '#4872d3'),             # Deep sea blue
-            (f(-0.1), '#68b2e3'),       # Shallow sea blue
-            (f(0.0), '#0f561e'),        # Dark green
-            (f(10), '#1a8b33'),         # Nicer green
-            (f(100), '#11aa15'),        # Glorious green
-            (f(300), '#e8e374'),        # Yellow at ~1000ft
-            (f(610), '#8a4121'),        # Brownish at ~2000ft
-            (f(915), '#999999'),        # Grey at ~3000ft
-            (1, 'white'),
-        ], N=1024)
-    #import matplotlib.cm
-    #cmap = matplotlib.cm.get_cmap('inferno')
+        "soundofmusic",
+        [
+            (0, "#4872d3"),  # Deep sea blue
+            (f(-0.1), "#68b2e3"),  # Shallow sea blue
+            (f(0.0), "#0f561e"),  # Dark green
+            (f(10), "#1a8b33"),  # Nicer green
+            (f(100), "#11aa15"),  # Glorious green
+            (f(300), "#e8e374"),  # Yellow at ~1000ft
+            (f(610), "#8a4121"),  # Brownish at ~2000ft
+            (f(915), "#999999"),  # Grey at ~3000ft
+            (1, "white"),
+        ],
+        N=1024,
+    )
+    # import matplotlib.cm
+    # cmap = matplotlib.cm.get_cmap('inferno')
 
     # Work out figure dimensions
     # Note: Matplotlib defaults to 100 dots per inch and 72 points per inch for
@@ -159,13 +171,14 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     fh = ny * zoom / dpi
     if verbose:
         print(f'Figure dimensions: {fw}" by {fh}" at {dpi} dpi')
-        print(f'Should result in {int(fw * dpi)} by {int(fh * dpi)} pixels.')
+        print(f"Should result in {int(fw * dpi)} by {int(fh * dpi)} pixels.")
 
     # Create figure
     if headless:
         fig = matplotlib.figure.Figure(figsize=(fw, fh), dpi=dpi)
     else:
         import matplotlib.pyplot as plt
+
         fig = plt.figure(figsize=(fw, fh), dpi=dpi)
     fig.subplots_adjust(0, 0, 1, 1)
 
@@ -174,11 +187,11 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     ax.set_axis_off()
     ax.imshow(
         heights,
-        origin='lower',
+        origin="lower",
         cmap=cmap,
         vmin=vmin,
         vmax=vmax,
-        interpolation='bilinear' if zoom > 1 else 'none',
+        interpolation="bilinear" if zoom > 1 else "none",
     )
     ax.set_xlim(0, nx)
     ax.set_ylim(0, ny)
@@ -192,29 +205,37 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
                     if y == 0 and x > 0:
                         q, r = meters2indices(x, y)
                         if q > 2 and q < nx - 2:
-                            ax.axvline(q, color='w', lw=0.5)
+                            ax.axvline(q, color="w", lw=0.5)
                     elif x == 0 and y > 0:
                         q, r = meters2indices(x, y)
                         if r > 2 and r < ny - 2:
-                            ax.axhline(r, color='w', lw=0.5)
+                            ax.axhline(r, color="w", lw=0.5)
                     q, r = meters2indices(x + 5000, y + 5000)
                     if q > 10 and q < nx - 10 and r > 10 and r < ny - 10:
-                        ax.text(q, r, sq + str(j) + str(i), color='w',
-                                ha='center', va='center', fontsize=10)
+                        ax.text(
+                            q,
+                            r,
+                            sq + str(j) + str(i),
+                            color="w",
+                            ha="center",
+                            va="center",
+                            fontsize=10,
+                        )
     elif big_grid:
         for sq, x, y in nevis.squares():
             if y == 0 and x > 0:
                 q, r = meters2indices(x, y)
                 if q > 0 and q < nx:
-                    ax.axvline(q, color='w', lw=0.5)
+                    ax.axvline(q, color="w", lw=0.5)
             elif x == 0 and y > 0:
                 q, r = meters2indices(x, y)
                 if r > 0 and r < ny:
-                    ax.axhline(r, color='w', lw=0.5)
+                    ax.axhline(r, color="w", lw=0.5)
             q, r = meters2indices(x + 50000, y + 50000)
             if q > 20 and q < nx - 20 and r > 10 and r < ny - 10:
-                ax.text(q, r, sq, color='w',
-                        ha='center', va='center', fontsize=14)
+                ax.text(
+                    q, r, sq, color="w", ha="center", va="center", fontsize=14
+                )
 
     # Add scale bar
     if scale_bar:
@@ -232,49 +253,67 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
             x = int(round(x / 1e3) * 1e3)
         else:
             x = int(round(x / 100) * 100)
-        t = f'{x}m' if x < 1000 else f'{x // 1000}km'
+        t = f"{x}m" if x < 1000 else f"{x // 1000}km"
         x = x / d_new[0] * nx
         y = 0.05 * ny
         dy = 0.015 * ny
         x0, x1 = 0.5 * x, 1.5 * x
-        ax.plot([x0, x1], [y, y], 'white', lw=1)
-        ax.plot([x0, x0], [y - dy, y + dy], 'white', lw=1)
-        ax.plot([x1, x1], [y - dy, y + dy], 'white', lw=1)
-        ax.text(0.5 * (x0 + x1), y + 0.5 * dy, t, color='white',
-                horizontalalignment='center')
+        ax.plot([x0, x1], [y, y], "white", lw=1)
+        ax.plot([x0, x0], [y - dy, y + dy], "white", lw=1)
+        ax.plot([x1, x1], [y - dy, y + dy], "white", lw=1)
+        ax.text(
+            0.5 * (x0 + x1),
+            y + 0.5 * dy,
+            t,
+            color="white",
+            horizontalalignment="center",
+        )
 
     # Show requested points
     if points is not None:
         points = np.asarray(points)
         alpha, ms, mw = (0.3, 4, 1) if len(points) > 20 else (1, 12, 2)
         x, y = meters2indices(points[:, 0], points[:, 1])
-        ax.plot(x, y, 'x', color='#0000ff',
-                markeredgewidth=mw, markersize=ms, alpha=alpha)
+        ax.plot(
+            x,
+            y,
+            "x",
+            color="#0000ff",
+            markeredgewidth=mw,
+            markersize=ms,
+            alpha=alpha,
+        )
 
     # Show trajectory
     if trajectory is not None:
         trajectory = np.asarray(trajectory)
         x, y = meters2indices(trajectory[:, 0], trajectory[:, 1])
         ax.plot(
-            x, y, 'o-', color='#000000',
-            lw=0.5, markeredgewidth=0.5, markersize=4)
+            x,
+            y,
+            "o-",
+            color="#000000",
+            lw=0.5,
+            markeredgewidth=0.5,
+            markersize=4,
+        )
 
     # Add labelled points
     if labels:
         n_plotted = 0
-        kwargs = {'fillstyle': 'none', 'markersize': 12}
+        kwargs = {"fillstyle": "none", "markersize": 12}
         for label, p in labels.items():
             if isinstance(p, nevis.Coords):
                 p = p.grid
             x, y = meters2indices(*p)
             if x > 0 and x < nx and y > 0 and y < ny:
                 n_plotted += 1
-                ax.plot(x, y, 'wo', markeredgewidth=3, **kwargs)
-                ax.plot(x, y, 'o', markeredgewidth=2, label=label, **kwargs)
+                ax.plot(x, y, "wo", markeredgewidth=3, **kwargs)
+                ax.plot(x, y, "o", markeredgewidth=2, label=label, **kwargs)
 
         if n_plotted:
             ax.legend(
-                loc='upper left',
+                loc="upper left",
                 framealpha=1,
                 handlelength=1.5,
                 handletextpad=0.9,
@@ -283,9 +322,18 @@ def plot(boundaries=None, labels=None, trajectory=None, points=None,
     return fig, ax, heights, meters2indices
 
 
-def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
-              padding=0.25, evaluations=400, figsize=(8, 5), headless=False,
-              verbose=False):
+def plot_line(
+    f,
+    point_1,
+    point_2,
+    label_1="Point 1",
+    label_2="Point 2",
+    padding=0.25,
+    evaluations=400,
+    figsize=(8, 5),
+    headless=False,
+    verbose=False,
+):
     """
     Draws a line between two points and evaluates a function along it.
 
@@ -325,7 +373,7 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
 
     # Direction vector
     r = point_2 - point_1
-    d = np.sqrt(r[0]**2 + r[1]**2)
+    d = np.sqrt(r[0] ** 2 + r[1] ** 2)
 
     # Points to evaluate
     s = np.linspace(-padding, 1 + padding, evaluations)
@@ -339,8 +387,9 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
         for i, f in enumerate(fs):
             if not callable(f):
                 raise ValueError(
-                    'f must be a callable or a sequence of callables: found'
-                    f' non-callable at index {i}.')
+                    "f must be a callable or a sequence of callables: found"
+                    f" non-callable at index {i}."
+                )
 
     # Evaluations-es
     ys = [[f(*x) for x in p] for f in fs]
@@ -350,20 +399,21 @@ def plot_line(f, point_1, point_2, label_1='Point 1', label_2='Point 2',
         fig = matplotlib.figure.Figure(figsize=figsize)
     else:
         import matplotlib.pyplot as plt
+
         fig = plt.figure(figsize=figsize)
 
     # Plot
     fig.subplots_adjust(0.1, 0.1, 0.99, 0.99)
     ax = fig.add_subplot(1, 1, 1)
-    ax.set_xlabel('Distance (m)')
-    ax.set_ylabel('Altitude - according to our interpolation (m)')
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    ax.set_xlabel("Distance (m)")
+    ax.set_ylabel("Altitude - according to our interpolation (m)")
+    ax.spines["right"].set_visible(False)
+    ax.spines["top"].set_visible(False)
     for k, y in enumerate(ys):
-        ax.plot(s * d, y, label=f'Function {1 + k}')
-    ax.axvline(0, ls='-', color='r', label=label_1)
-    ax.axvline(d, ls='--', color='k', label=label_2)
-    ax.axvspan(0, d, color='#fffede', lw=0, zorder=-1)
+        ax.plot(s * d, y, label=f"Function {1 + k}")
+    ax.axvline(0, ls="-", color="r", label=label_1)
+    ax.axvline(d, ls="--", color="k", label=label_2)
+    ax.axvspan(0, d, color="#fffede", lw=0, zorder=-1)
     ax.legend()
 
     return fig, ax, nevis.Coords(*p[0]), nevis.Coords(*p[-1])
@@ -377,7 +427,7 @@ def save_plot(path, fig, heights=None, verbose=False):
     check that the image dimensions (in pixels) equal the size of ``heights``.
     """
     if verbose:
-        print(f'Writing figure to {path}')
+        print(f"Writing figure to {path}")
     fig.savefig(path)
 
     # Try importing PIL to check image size
@@ -393,15 +443,15 @@ def save_plot(path, fig, heights=None, verbose=False):
 
     # Open image, get file size
     if verbose:
-        print('Checking size of generated image')
+        print("Checking size of generated image")
     with PIL.Image.open(path) as im:
         ix, iy = im.size
 
     if (iy, ix) == heights.shape:
         if verbose:
-            print('Image size OK')
+            print("Image size OK")
     else:
         warnings.warn(
-            f'Unexpected image size: width {ix}, height {iy}, expecting'
-            f' {heights.shape}.')
-
+            f"Unexpected image size: width {ix}, height {iy}, expecting"
+            f" {heights.shape}."
+        )

@@ -37,15 +37,18 @@ if square:
 points = trajectory = None
 if False:
     import numpy as np
+
     ben = nevis.ben()
     points = []
     trajectory = [np.array(ben.grid)]
     for i in range(50):
         trajectory.append(
-            trajectory[-1] + (np.random.random(2) - 0.5) * 5e2 * i**1.5)
+            trajectory[-1] + (np.random.random(2) - 0.5) * 5e2 * i**1.5
+        )
         for j in range(10):
             points.append(
-                trajectory[-1] + (np.random.random(2) - 0.5) * 8e2 * i**1.5)
+                trajectory[-1] + (np.random.random(2) - 0.5) * 8e2 * i**1.5
+            )
     trajectory = np.array(trajectory)
     points = np.array(points)
 
@@ -59,8 +62,8 @@ if False:
 
 # Labels
 labels = {
-    'Ben Nevis': nevis.ben(),
-    'Holme Fen': nevis.fen(),
+    "Ben Nevis": nevis.ben(),
+    "Holme Fen": nevis.fen(),
 }
 
 # Load data
@@ -81,7 +84,6 @@ fig, ax, heights, g = nevis.plot(
 )
 
 # Save plot, and check resulting image dimensions
-if not os.path.isdir('results'):
-    os.makedirs('results')
-nevis.save_plot('results/gb.png', fig, heights, verbose=True)
-
+if not os.path.isdir("results"):
+    os.makedirs("results")
+nevis.save_plot("results/gb.png", fig, heights, verbose=True)
