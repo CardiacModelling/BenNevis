@@ -384,7 +384,7 @@ class Hill(object):
     @staticmethod
     def by_rank(rank):
         """
-        Return the hill with the given ``rank`` (rank 1 is heighest, then 2,
+        Return the hill with the given ``rank`` (rank 1 is highest, then 2,
         etc.).
         """
         if not Hill._hills:
