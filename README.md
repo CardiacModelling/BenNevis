@@ -55,10 +55,9 @@ This should create a file (in your working directory) called `gb-small.png`:
 
 ## Usage
 
-Detailed usage examples will eventually be provided in the [examples](https://github.com/CardiacModelling/BenNevis/blob/main/examples/README.md) directory.
-For the time being, please see [fit.py](https://github.com/CardiacModelling/BenNevis/blob/main/fit.py) for an example.
+Detailed usage examples are provided in the [examples](https://github.com/CardiacModelling/BenNevis/blob/main/examples/README.md) directory.
 
-An example of its output is given below:
+For example, the below optimisation uses [PINTS](https://github.com/pints-team/pints):
 ```
 
                 |>          
@@ -97,7 +96,7 @@ Congratulations!
 You landed at an altitude of 1309m.
   https://opentopomap.org/#marker=15/57.07019/-3.669487
 You are 31m from the nearest named hill top, "Ben Macdui",
-  ranked the 2d heighest in GB.
+  ranked the 2nd highest in GB.
   http://hillsummits.org.uk/htm_summit/518.htm
 ```
 
@@ -169,3 +168,12 @@ We also experimented with a scipy [RectBiVariateSpline](https://docs.scipy.org/d
 This takes some time (~30 seconds on a fast machine) and uses considerable memory (~3GB).
 Most importantly, the spline shows some very serious (and unrealistic) artefacts near high gradients (e.g. at the sea side), so that the linear interpolation seems the way to go for now.
 
+## Citing
+
+If you are using this project, please cite our pre-print:
+
+Wei, Clerx, Mirams (2024) 
+Where's Ben Nevis? A 2D optimisation benchmark with 957,174 local optima based on Great Britain terrain data.
+arXiv. 
+[doi: 10.48550/arXiv.2410.02422](https://doi.org/10.48550/arXiv.2410.02422)
+| [code](https://github.com/CardiacModelling/BenNevisBenchmark)
