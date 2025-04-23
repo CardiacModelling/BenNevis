@@ -14,11 +14,11 @@ To install from the [Python Package Index (PyPI)](https://pypi.org/project/nevis
 pip install nevis
 ```
 
-To install the optional `convertbng` module at the same time, use:
+**Recommended**: To install the optional `convertbng` module at the same time, use:
 ```
 pip install nevis[extras]
 ```
-This will make conversion from points in the data set to longitude and lattitude more accurate.
+This will make conversion from points in the data set to longitude and lattitude faster and more accurate.
 
 Developers may wish to skip PyPI installation, clone the [GitHub repository](https://github.com/CardiacModelling/BenNevis), and install from there instead.
 Instructions for this are provided in [CONTRIBUTING.md](https://github.com/CardiacModelling/BenNevis/blob/main/CONTRIBUTING.md).
